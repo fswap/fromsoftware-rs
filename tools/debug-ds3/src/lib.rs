@@ -55,6 +55,7 @@ struct DarkSouls3DebugGui {
     menu_man: StaticDebugger<MenuMan>,
     item_get_menu_man: StaticDebugger<ItemGetMenuMan>,
     params: StaticDebugger<CSRegulationManager>,
+    solo_params: StaticDebugger<SoloParamRepository>,
 }
 
 impl DarkSouls3DebugGui {
@@ -69,6 +70,7 @@ impl DarkSouls3DebugGui {
             menu_man: StaticDebugger::new(),
             item_get_menu_man: StaticDebugger::new(),
             params: StaticDebugger::new(),
+            solo_params: StaticDebugger::new(),
         }
     }
 }
@@ -116,6 +118,7 @@ impl ImguiRenderLoop for DarkSouls3DebugGui {
 
                 if let Some(item) = ui.tab_item("Resource") {
                     self.params.render_debug(&ui);
+                    self.solo_params.render_debug(&ui);
                     item.end();
                 }
 
