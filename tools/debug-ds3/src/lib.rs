@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use darksouls3::app_menu::*;
 use darksouls3::cs::*;
 use darksouls3::sprj::*;
 use darksouls3::util::{input::*, system::wait_for_system_init};
@@ -53,6 +54,7 @@ struct DarkSouls3DebugGui {
     field_area: StaticDebugger<FieldArea>,
     events: StaticDebugger<SprjEventFlagMan>,
     menu_man: StaticDebugger<MenuMan>,
+    new_menu_system: StaticDebugger<NewMenuSystem>,
     item_get_menu_man: StaticDebugger<ItemGetMenuMan>,
     params: StaticDebugger<CSRegulationManager>,
     solo_params: StaticDebugger<SoloParamRepository>,
@@ -68,6 +70,7 @@ impl DarkSouls3DebugGui {
             field_area: StaticDebugger::new(),
             events: StaticDebugger::new(),
             menu_man: StaticDebugger::new(),
+            new_menu_system: StaticDebugger::new(),
             item_get_menu_man: StaticDebugger::new(),
             params: StaticDebugger::new(),
             solo_params: StaticDebugger::new(),
@@ -112,6 +115,7 @@ impl ImguiRenderLoop for DarkSouls3DebugGui {
 
                 if let Some(item) = ui.tab_item("Menu") {
                     self.menu_man.render_debug(&ui);
+                    self.new_menu_system.render_debug(&ui);
                     self.item_get_menu_man.render_debug(&ui);
                     item.end();
                 }

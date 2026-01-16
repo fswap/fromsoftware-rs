@@ -65,7 +65,7 @@ impl FromStatic for NewMenuSystem {
 
 #[repr(C)]
 pub struct MenuWindow {
-    _vftable: usize,
+    pub vftable: usize,
     _unk08: u32,
     _fix_order_job_sequence: usize,
     _unk18: [u8; 0x28],
@@ -73,7 +73,7 @@ pub struct MenuWindow {
     _grid_control: usize,
     _option_setting_top_dialog: usize,
     _unk58: [u8; 0x38],
-    pub unk90: u64,
+    _unk90: u64,
     _unk98: [u8; 0x18],
     _unkb0: u64,
     _unkb8: [u8; 0x18],

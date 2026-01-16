@@ -18,9 +18,8 @@ pub struct MenuMan {
     _unk30: u16,
 
     /// Various flags each with its own meaning. Known flags have accessor methods.
-    pub flags: [i32; 0x500],
+    pub flags: [i32; 500],
 
-    _unk7f4: [u8; 0x10],
     _unk804: u32,
     _unk808: u32,
     _unk80c: u32,

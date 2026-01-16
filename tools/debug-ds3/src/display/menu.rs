@@ -1,6 +1,6 @@
 use hudhook::imgui::{TableColumnSetup, TableFlags, TreeNodeFlags, Ui};
 
-use darksouls3::sprj::*;
+use darksouls3::{app_menu::*, sprj::*};
 
 use super::{DebugDisplay, StatefulDebugDisplay};
 
@@ -37,6 +37,38 @@ impl DebugDisplay for MenuMan {
         } else {
             ui.text("<no grant item command>");
         }
+    }
+}
+
+impl DebugDisplay for NewMenuSystem {
+    fn render_debug(&mut self, ui: &&mut Ui) {
+        ui.indent();
+        if let Some(_t) = ui.begin_table_header_with_flags(
+            "new-menu-system-windows",
+            [
+                TableColumnSetup::new("Address"),
+                TableColumnSetup::new("vtable RVA"),
+            ],
+            TableFlags::RESIZABLE
+                | TableFlags::BORDERS
+                | TableFlags::ROW_BG
+                | TableFlags::SIZING_STRETCH_PROP,
+        ) {
+            for window in self.windows.iter() {
+                ui.table_next_column();
+                ui.text(format!("{:p}", window));
+
+                use pelite::pe64::*;
+                ui.table_next_column();
+                ui.text(format!(
+                    "{:x}",
+                    crate::Program::current()
+                        .va_to_rva(unsafe { window.as_ref() }.vftable as u64)
+                        .unwrap()
+                ));
+            }
+        }
+        ui.unindent();
     }
 }
 
