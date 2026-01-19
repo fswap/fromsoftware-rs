@@ -1,7 +1,9 @@
 use std::{borrow::Cow, ptr::NonNull};
 
+use shared::{FromStatic, Subclass, Superclass, UnknownStruct};
+
+use super::{GaitemSelectBaseMenu, GaitemSelectMenu};
 use crate::{CxxVec, dlut::DLFixedVector, rva, sprj::SprjScaleformValue};
-use shared::{FromStatic, UnknownStruct};
 
 #[repr(C)]
 // Source of name: RTTI
@@ -65,6 +67,8 @@ impl FromStatic for NewMenuSystem {
 }
 
 #[repr(C)]
+#[derive(Superclass)]
+#[superclass(children(GaitemSelectBaseMenu, GaitemSelectMenu))]
 // Source of name: RTTI
 pub struct MenuWindow {
     pub vftable: usize,

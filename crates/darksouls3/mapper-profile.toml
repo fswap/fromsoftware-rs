@@ -1,4 +1,16 @@
 [[vmts]]
+class = "AppMenu::GaitemSelectBaseMenu"
+vftable = "gaitem_select_base_menu_vmt"
+
+[[vmts]]
+class = "AppMenu::GaitemSelectMenu"
+vftable = "gaitem_select_menu_vmt"
+
+[[vmts]]
+class = "AppMenu::MenuWindow"
+vftable = "menu_window_vmt"
+
+[[vmts]]
 class = "DLUID::KeyboardDevice<DLKR::DLMultiThreadingPolicy>"
 captures = { "dluid_keyboard_device_should_block_input" = 27 }
 

@@ -142,7 +142,7 @@ fn build_subclass_enums(superclass_struct: &mut ItemStruct) -> Result<TokenStrea
                 // Safety: We require that VMTs indicate object type.
                 unsafe {
                     #(
-                        if rva == #subclasses::vmt_rva() {
+                        if rva == <#subclasses as ::fromsoftware_shared::Subclass<#superclass>>::vmt_rva() {
                             #enum_name::#subclasses(
                                 ::std::ptr::NonNull::from_ref(subclass)
                                     .cast::<#subclasses>()
@@ -173,7 +173,7 @@ fn build_subclass_enums(superclass_struct: &mut ItemStruct) -> Result<TokenStrea
                 // Safety: We require that VMTs indicate object type.
                 unsafe {
                     #(
-                        if rva == #subclasses::vmt_rva() {
+                        if rva == <#subclasses as ::fromsoftware_shared::Subclass<#superclass>>::vmt_rva() {
                             #mut_enum_name::#subclasses(
                                 ::std::ptr::NonNull::from_ref(subclass)
                                     .cast::<#subclasses>()

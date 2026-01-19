@@ -1,9 +1,11 @@
+use shared::{Subclass, Superclass, UnknownStruct};
+
 use super::{MenuWindow, MenuWindowCallback, SceneObjProxy};
 use crate::CxxVec;
 
-use shared::UnknownStruct;
-
 #[repr(C)]
+#[derive(Superclass, Subclass)]
+#[superclass(children(GaitemSelectMenu))]
 // Source of name: RTTI
 pub struct GaitemSelectBaseMenu {
     pub menu_window: MenuWindow,
@@ -59,6 +61,8 @@ pub struct GaitemSelectDetailStatusView {
 }
 
 #[repr(C)]
+#[derive(Subclass)]
+#[subclass(base = GaitemSelectBaseMenu, base = MenuWindow)]
 // Source of name: RTTI
 pub struct GaitemSelectMenu {
     pub base: GaitemSelectBaseMenu,
