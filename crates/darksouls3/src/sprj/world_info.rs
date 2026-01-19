@@ -9,28 +9,44 @@ use shared::UnknownStruct;
 pub struct WorldInfo {
     _vftable: usize,
 
-    /// The number of defined entries in [world_area_info].
+    /// The number of defined entries in
+    /// [world_area_info](Self::world_area_info).
     ///
-    /// These are always an initial sublist of [world_area_info].
-    pub world_area_info_count: u32,
+    /// Use [Self::area_info] to access this safely.
+    pub world_area_info_len: u32,
 
-    /// A pointer to the beginning of [world_area_info].
+    /// A pointer to the beginning of [world_area_info](Self::world_area_info).
+    ///
+    /// Use [Self::area_info] to access this safely.
     pub world_area_info_list_ptr: NonNull<WorldAreaInfo>,
 
-    /// The number of defined entries in [world_block_info].
-    pub world_block_info_count: u32,
+    /// The number of defined entries in
+    /// [world_block_info](Self::world_block_info).
+    ///
+    /// Use [Self::block_info] to access this safely.
+    pub world_block_info_len: u32,
 
-    /// A pointer to the beginning of [world_block_info].
+    /// A pointer to the beginning of
+    /// [world_block_info](Self::world_block_info).
+    ///
+    /// These are always an initial sublist of
+    /// [world_block_info](Self::world_block_info).
+    ///
+    /// Use [Self::block_info] to access this safely.
     pub world_block_info_list_ptr: NonNull<WorldBlockInfo>,
 
     _unk28: u8,
 
-    /// The pool of [WorldAreaInfo]s. Only the first [world_area_info_count]
-    /// are initialized.
+    /// The pool of [WorldAreaInfo]s. Only the first
+    /// [world_area_info_len](Self::world_area_info_len) are initialized.
+    ///
+    /// Use [Self::area_info] to access this safely.
     pub world_area_info: [MaybeUninit<WorldAreaInfo>; 0x14],
 
-    /// The pool of [WorldBlockInfo]s. Only the first [world_block_info_count]
-    /// are initialized.
+    /// The pool of [WorldBlockInfo]s. Only the first
+    /// [world_block_info_len](Self::world_block_info_len) are initialized.
+    ///
+    /// Use [Self::block_info] to access this safely.
     pub world_block_info: [MaybeUninit<WorldBlockInfo>; 0x20],
 
     _unk1290: u64,
@@ -42,7 +58,7 @@ impl WorldInfo {
         unsafe {
             slice::from_raw_parts(
                 self.world_area_info_list_ptr.as_ptr(),
-                self.world_area_info_count as usize,
+                self.world_area_info_len as usize,
             )
         }
     }
@@ -52,7 +68,7 @@ impl WorldInfo {
         unsafe {
             slice::from_raw_parts_mut(
                 self.world_area_info_list_ptr.as_mut(),
-                self.world_area_info_count as usize,
+                self.world_area_info_len as usize,
             )
         }
     }
@@ -62,7 +78,7 @@ impl WorldInfo {
         unsafe {
             slice::from_raw_parts(
                 self.world_block_info_list_ptr.as_ptr(),
-                self.world_block_info_count as usize,
+                self.world_block_info_len as usize,
             )
         }
     }
@@ -72,7 +88,7 @@ impl WorldInfo {
         unsafe {
             slice::from_raw_parts_mut(
                 self.world_block_info_list_ptr.as_mut(),
-                self.world_block_info_count as usize,
+                self.world_block_info_len as usize,
             )
         }
     }
@@ -95,7 +111,7 @@ pub struct WorldAreaInfo {
     _unk18: u32,
     _unk1c: u32,
 
-    /// The length of the [block_info] array.
+    /// The length of the [block_info](Self::block_info) array.
     pub block_info_length: u32,
 
     /// The block infos for this [WorldAreaInfo].
@@ -171,31 +187,44 @@ pub struct WorldInfoOwner {
     pub super_world_info: WorldInfo,
     _unk8: u64,
 
-    /// The number of defined entries in [world_area_res].
-    pub world_area_res_count: u32,
+    /// The number of defined entries in [world_area_res](Self::world_area_res).
+    ///
+    /// Use [Self::area_res] to access this safely.
+    pub world_area_res_len: u32,
 
-    /// A pointer to the beginning of [world_area_res].
+    /// A pointer to the beginning of [world_area_res](Self::world_area_res).
+    ///
+    /// Use [Self::area_res] to access this safely.
     pub world_area_res_list_ptr: NonNull<WorldAreaRes>,
 
     _unk12b0: u32,
     _unk12b4: u32,
 
-    /// The number of defined entries in [world_block_res].
-    pub world_block_res_count: u32,
+    /// The number of defined entries in
+    /// [world_block_res](Self::world_block_res).
+    ///
+    /// Use [Self::block_res] to access this safely.
+    pub world_block_res_len: u32,
 
-    /// A pointer to the beginning of [world_block_res].
+    /// A pointer to the beginning of [world_block_res](Self::world_block_res).
+    ///
+    /// Use [Self::block_res] to access this safely.
     pub world_block_res_list_ptr: NonNull<WorldBlockRes>,
 
     _unk12c8: u64,
     _unk12d0: u64,
     _unk12d8: u64,
 
-    /// The pool of [WorldAreaRes]es. Only the first [world_area_res_count] are
-    /// initialized.
+    /// The pool of [WorldAreaRes]es. Only the first
+    /// [world_area_res_len](Self::world_area_res_len) are initialized.
+    ///
+    /// Use [Self::area_res] to access this safely.
     pub world_area_res: [MaybeUninit<WorldAreaRes>; 0x14],
 
-    /// The pool of [WorldBlockRes]es. Only the first [world_block_res_count]
-    /// are initialized.
+    /// The pool of [WorldBlockRes]es. Only the first
+    /// [world_block_res_len](Self::world_block_res_len) are initialized.
+    ///
+    /// Use [Self::block_res] to access this safely.
     pub world_block_res: [MaybeUninit<WorldBlockRes>; 0x20],
 
     _unkae80: u64,
@@ -203,38 +232,38 @@ pub struct WorldInfoOwner {
 }
 
 impl WorldRes {
-    pub fn world_area_res(&self) -> &[WorldAreaRes] {
+    pub fn area_res(&self) -> &[WorldAreaRes] {
         unsafe {
             slice::from_raw_parts(
                 self.world_area_res_list_ptr.as_ptr(),
-                self.world_area_res_count as usize,
+                self.world_area_res_len as usize,
             )
         }
     }
 
-    pub fn world_area_res_mut(&mut self) -> &mut [WorldAreaRes] {
+    pub fn area_res_mut(&mut self) -> &mut [WorldAreaRes] {
         unsafe {
             slice::from_raw_parts_mut(
                 self.world_area_res_list_ptr.as_mut(),
-                self.world_area_res_count as usize,
+                self.world_area_res_len as usize,
             )
         }
     }
 
-    pub fn world_block_res(&self) -> &[WorldBlockRes] {
+    pub fn block_res(&self) -> &[WorldBlockRes] {
         unsafe {
             slice::from_raw_parts(
                 self.world_block_res_list_ptr.as_ptr(),
-                self.world_block_res_count as usize,
+                self.world_block_res_len as usize,
             )
         }
     }
 
-    pub fn world_block_res_mut(&mut self) -> &mut [WorldBlockRes] {
+    pub fn block_res_mut(&mut self) -> &mut [WorldBlockRes] {
         unsafe {
             slice::from_raw_parts_mut(
                 self.world_block_res_list_ptr.as_mut(),
-                self.world_block_res_count as usize,
+                self.world_block_res_len as usize,
             )
         }
     }

@@ -1,16 +1,17 @@
-use std::slice;
+use std::{ptr::NonNull, slice};
 
 use shared::{OwnedPtr, empty::*};
 
 use crate::sprj::ChrSet;
 
-use super::{ChrIns, FieldInsSelector};
+use super::{ChrIns, FieldInsSelector, WorldBlockInfo};
 
 #[repr(C)]
 /// Source of name: RTTI
 pub struct WorldBlockChr {
     _vftable: usize,
-    _unk08: [u64; 0xe],
+    pub world_block_info: NonNull<WorldBlockInfo>,
+    _unk10: [u64; 0xd],
     _unk78: u32,
 
     /// The set of character entities associated with this block.
@@ -19,10 +20,14 @@ pub struct WorldBlockChr {
     _unk98: u32,
     _unka0: u64,
 
-    /// The length of [mappings].
+    /// The length of [mappings](#structfield.mappings).
+    ///
+    /// Use [Self::mappings] to access this safely.
     pub mappings_length: i32,
 
-    /// Mappings from entity IDs to [FileInsSelector]s.
+    /// Mappings from entity IDs to [FieldInsSelector]s.
+    ///
+    /// Use [Self::mappings] to access this safely.
     pub mappings: OwnedPtr<WorldBlockMapping>,
 
     _unkb8: u32,

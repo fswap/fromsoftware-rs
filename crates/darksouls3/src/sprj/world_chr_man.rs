@@ -2,7 +2,7 @@ use std::{mem::MaybeUninit, ptr::NonNull, slice};
 
 use shared::{OwnedPtr, Subclass, UnknownStruct, empty::*};
 
-use super::{ChrIns, PlayerIns, ReplayGhostIns, WorldBlockChr, WorldInfoOwner};
+use super::{ChrIns, PlayerIns, ReplayGhostIns, WorldAreaInfo, WorldBlockChr, WorldInfoOwner};
 use crate::CxxVec;
 
 #[repr(C)]
@@ -12,16 +12,25 @@ pub struct WorldChrMan {
     vtable: usize,
     pub world_info_owner: NonNull<WorldInfoOwner>,
 
-    /// The number of defined entries in [world_area_chr].
-    pub world_area_chr_count: u32,
+    /// The number of defined [WorldAreaChr]s.
+    ///
+    /// Use [Self::area_chrs] to access these safely.
+    pub world_area_chr_len: u32,
 
-    /// A pointer to the beginning of [world_area_chr].
+    /// A pointer to the beginning of [world_area_chr](Self::world_area_chr).
+    ///
+    /// Use [Self::area_chrs] to access these safely.
     pub world_area_chr_ptr: NonNull<WorldAreaChr>,
 
-    /// The number of defined entries in [world_block_chr].
+    /// The number of defined [WorldBlockChr]s. These aren't necessarily
+    /// contiguous at the beginning of [world_block_chr](Self::world_block_chr).
+    ///
+    /// Use [Self::block_chrs] to access these safely.
     pub world_block_chr_count: u32,
 
-    /// A pointer to the beginning of [world_block_chr].
+    /// A pointer to the beginning of [world_block_chr](Self::world_block_chr).
+    ///
+    /// Use [Self::block_chrs] to access these safely.
     pub world_block_chr_ptr: NonNull<MaybeEmpty<WorldBlockChr>>,
 
     _unk30: u32,
@@ -48,9 +57,8 @@ pub struct WorldChrMan {
     _unkb0: u64,
     _unkb8: u64,
 
-    /// The length of [loaded_world_block_chr_ptr].
     pub loaded_world_block_chr_count: i32,
-    pub loaded_world_block_chr_ptr: [NonNull<WorldBlockChr>; 32],
+    pub loaded_world_block_chr_ptr: [Option<NonNull<WorldBlockChr>>; 32],
 
     _unk1c8: u32,
     _unk1d0: [UnknownStruct<0x18>; 35],
@@ -62,12 +70,14 @@ pub struct WorldChrMan {
     _chr_thread: usize,
     _unk658: u64,
 
-    /// The pool of [WorldAreaChr]s. Only the first [world_area_chr_count]
-    /// are initialized.
+    /// The pool of [WorldAreaChr]s.
+    ///
+    /// Use [Self::area_chrs] to access these safely.
     pub world_area_chr: [MaybeUninit<WorldAreaChr>; 20],
 
-    /// The pool of [WorldBlockChr]s. Only the first [world_area_chr_count]
-    /// are initialized.
+    /// The pool of [WorldBlockChr]s.
+    ///
+    /// Use [Self::block_chrs] to access these safely.
     pub world_block_chr: [MaybeEmpty<WorldBlockChr>; 32],
 
     _unk2fe0: u64,
@@ -94,30 +104,44 @@ pub struct WorldChrMan {
 }
 
 impl WorldChrMan {
-    /// Returns an iterator over the non-empty [WorldBlockChr]s.
-    pub fn world_block_chrs(&self) -> WorldBlockChrIter<'_> {
+    /// A slice of defined [WorldAreaChr]s.
+    pub fn area_chrs(&self) -> &[WorldAreaChr] {
+        unsafe {
+            slice::from_raw_parts(
+                self.world_area_chr.as_ptr() as *const WorldAreaChr,
+                self.world_area_chr_len as usize,
+            )
+        }
+    }
+
+    /// A slice of defined mutable [WorldAreaChr]s.
+    pub fn area_chrs_mut(&mut self) -> &mut [WorldAreaChr] {
+        unsafe {
+            slice::from_raw_parts_mut(
+                self.world_area_chr.as_ptr() as *mut WorldAreaChr,
+                self.world_area_chr_len as usize,
+            )
+        }
+    }
+
+    /// An iterator over the non-empty [WorldBlockChr]s.
+    pub fn block_chrs(&self) -> impl Iterator<Item = &WorldBlockChr> {
         self.world_block_chr.iter().non_empty()
     }
 
-    /// Returns a mutable iterator over the non-empty [WorldBlockChr]s.
-    pub fn world_block_chrs_mut(&mut self) -> WorldBlockChrIterMut<'_> {
+    /// A mutable iterator over the non-empty [WorldBlockChr]s.
+    pub fn block_chrs_mut(&mut self) -> impl Iterator<Item = &mut WorldBlockChr> {
         self.world_block_chr.iter_mut().non_empty()
     }
 }
-
-pub type WorldBlockChrIter<'a> =
-    NonEmptyIter<'a, WorldBlockChr, slice::Iter<'a, MaybeEmpty<WorldBlockChr>>>;
-
-pub type WorldBlockChrIterMut<'a> =
-    NonEmptyIterMut<'a, WorldBlockChr, slice::IterMut<'a, MaybeEmpty<WorldBlockChr>>>;
 
 #[repr(C)]
 /// Source of name: RTTI
 pub struct WorldAreaChr {
     _vftable: usize,
-    _unk08: u64,
+    pub world_area_info: NonNull<WorldAreaInfo>,
     _unk10: u32,
-    _unk18: u64,
+    pub world_block_chr: NonNull<WorldBlockChr>,
 }
 
 #[repr(C)]
@@ -126,8 +150,8 @@ pub struct ChrSet<T>
 where
     T: Subclass<ChrIns>,
 {
-    /// The capacity of [entries]. Not every entry within this capacity will be
-    /// non-empty.
+    /// The capacity of [entries](Self::entries). Not every entry within this
+    /// capacity will be non-empty.
     pub capacity: u32,
 
     /// The contents of the set.
@@ -142,83 +166,33 @@ where
 {
     /// Returns a slice over all the entries in this set, whether or not they're
     /// empty.
-    pub fn entries(&self) -> &[MaybeEmpty<ChrSetEntry<T>>] {
+    pub fn all_entries(&self) -> &[MaybeEmpty<ChrSetEntry<T>>] {
         unsafe { slice::from_raw_parts(self.entries.as_ptr(), self.capacity as usize) }
     }
 
     /// Returns a mutable slice over all the entries in this set.
-    pub fn entries_mut(&mut self) -> &mut [MaybeEmpty<ChrSetEntry<T>>] {
+    pub fn all_entries_mut(&mut self) -> &mut [MaybeEmpty<ChrSetEntry<T>>] {
         unsafe { slice::from_raw_parts_mut(self.entries.as_ptr(), self.capacity as usize) }
     }
 
-    /// Returns an iterator over all the [T]s in this set.
-    pub fn iter(&self) -> ChrSetIter<'_, T> {
-        ChrSetIter(self.entries().iter().non_empty())
+    /// Returns an iterator over all the non-empty [ChrSetEntry]s in this set.
+    pub fn entries(&self) -> impl Iterator<Item = &ChrSetEntry<T>> {
+        self.all_entries().iter().non_empty()
     }
 
-    /// Returns a mutable iterator over all the [T]s in this set.
-    pub fn iter_mut(&mut self) -> ChrSetIterMut<'_, T> {
-        ChrSetIterMut(self.entries_mut().iter_mut().non_empty())
+    /// Returns a mutable iterator over all non-empty [ChrSetEntry]s in this set.
+    pub fn entries_mut(&mut self) -> impl Iterator<Item = &mut ChrSetEntry<T>> {
+        self.all_entries_mut().iter_mut().non_empty()
     }
-}
 
-/// An iterator over a [ChrSet].
-pub struct ChrSetIter<'a, T>(
-    NonEmptyIter<'a, ChrSetEntry<T>, slice::Iter<'a, MaybeEmpty<ChrSetEntry<T>>>>,
-)
-where
-    T: Subclass<ChrIns>;
-
-impl<'a, T> Iterator for ChrSetIter<'a, T>
-where
-    T: Subclass<ChrIns>,
-{
-    type Item = &'a T;
-
-    fn next(&mut self) -> Option<&'a T> {
-        self.0.next().map(|entry| entry.chr.as_ref())
+    /// Returns an iterator over all the `T`s in this set.
+    pub fn iter(&self) -> impl Iterator<Item = &T> {
+        self.entries().map(|e| e.chr())
     }
-}
 
-/// An iterator over a [ChrSet].
-pub struct ChrSetIterMut<'a, T>(
-    NonEmptyIterMut<'a, ChrSetEntry<T>, slice::IterMut<'a, MaybeEmpty<ChrSetEntry<T>>>>,
-)
-where
-    T: Subclass<ChrIns>;
-
-impl<'a, T> Iterator for ChrSetIterMut<'a, T>
-where
-    T: Subclass<ChrIns>,
-{
-    type Item = &'a mut T;
-
-    fn next(&mut self) -> Option<&'a mut T> {
-        self.0.next().map(|entry| entry.chr.as_mut())
-    }
-}
-
-impl<'a, T> IntoIterator for &'a ChrSet<T>
-where
-    T: Subclass<ChrIns>,
-{
-    type Item = &'a T;
-    type IntoIter = ChrSetIter<'a, T>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter()
-    }
-}
-
-impl<'a, T> IntoIterator for &'a mut ChrSet<T>
-where
-    T: Subclass<ChrIns>,
-{
-    type Item = &'a mut T;
-    type IntoIter = ChrSetIterMut<'a, T>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.iter_mut()
+    /// Returns a mutable iterator over all the `T`s in this set.
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        self.entries_mut().map(|e| e.chr_mut())
     }
 }
 
@@ -229,7 +203,7 @@ where
     T: Subclass<ChrIns>,
 {
     /// The character this entry refers to.
-    pub chr: OwnedPtr<T>,
+    pub chr: NonNull<T>,
 
     _unk08: u32,
     _unk10: u64,
@@ -237,6 +211,21 @@ where
     _unk20: u64,
     _chr_physics_module: usize,
     _unk30: usize,
+}
+
+impl<T> ChrSetEntry<T>
+where
+    T: Subclass<ChrIns>,
+{
+    /// The [ChrIns] that this entry contains.
+    pub fn chr(&self) -> &T {
+        unsafe { self.chr.as_ref() }
+    }
+
+    /// The mutable [ChrIns] that this entry contains.
+    pub fn chr_mut(&mut self) -> &mut T {
+        unsafe { self.chr.as_mut() }
+    }
 }
 
 unsafe impl<T> IsEmpty for ChrSetEntry<T>

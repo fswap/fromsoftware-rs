@@ -6,7 +6,7 @@ use crate::cs::{CSEzTask, CSEzVoidTask};
 use crate::position::HavokPosition;
 use crate::{ChainingTree, DoublyLinkedList, Tree};
 use crate::{Vector, cs::ChrIns};
-use shared::{F32Vector4, OwnedPtr};
+use shared::{F32Vector4, OwnedPtr, Subclass, Superclass};
 
 use super::{BlockId, ChrCam, FieldInsHandle, NetChrSync, PlayerIns};
 
@@ -116,11 +116,18 @@ pub struct WorldChrMan {
 }
 
 impl WorldChrMan {
-    pub fn chr_ins_by_handle(&mut self, handle: &FieldInsHandle) -> Option<&mut ChrIns> {
+    pub fn chr_ins_by_handle(&self, handle: &FieldInsHandle) -> Option<&ChrIns> {
+        let chr_set_index = handle.selector.container() as usize;
+        let chr_set = self.chr_sets.get(chr_set_index)?.as_ref()?;
+
+        chr_set.chr_ins_by_handle(handle)
+    }
+
+    pub fn chr_ins_by_handle_mut(&mut self, handle: &FieldInsHandle) -> Option<&mut ChrIns> {
         let chr_set_index = handle.selector.container() as usize;
         let chr_set = self.chr_sets.get_mut(chr_set_index)?.as_mut()?;
 
-        chr_set.chr_ins_by_handle(handle)
+        chr_set.chr_ins_by_handle_mut(handle)
     }
 
     pub fn spawn_debug_character(&mut self, request: &ChrDebugSpawnRequest) {
@@ -211,7 +218,10 @@ pub struct CSDebugChrCreatorInitData {
 }
 
 #[repr(C)]
-pub struct ChrSetHolder<T: 'static> {
+pub struct ChrSetHolder<T>
+where
+    T: Subclass<ChrIns> + 'static,
+{
     pub chr_set: NonNull<ChrSet<T>>,
     pub chr_set_index: u32,
     _padc: u32,
@@ -219,8 +229,12 @@ pub struct ChrSetHolder<T: 'static> {
 }
 
 #[repr(C)]
+#[derive(Subclass)]
 /// Source of name: RTTI
-pub struct WorldAreaChr<T: 'static> {
+pub struct WorldAreaChr<T>
+where
+    T: Subclass<ChrIns> + 'static,
+{
     pub base: WorldAreaChrBase,
     pub world_area_info: usize,
     unk18: u32,
@@ -229,6 +243,7 @@ pub struct WorldAreaChr<T: 'static> {
 }
 
 #[repr(C)]
+#[derive(Superclass)]
 /// Source of name: RTTI
 pub struct WorldAreaChrBase {
     vftable: usize,
@@ -237,7 +252,10 @@ pub struct WorldAreaChrBase {
 
 #[repr(C)]
 /// Source of name: RTTI
-pub struct WorldBlockChr<T: 'static> {
+pub struct WorldBlockChr<T>
+where
+    T: Subclass<ChrIns> + 'static,
+{
     vftable: usize,
     pub world_block_info1: usize,
     unk10: [u8; 0x68],
@@ -258,29 +276,29 @@ trait ChrSetVmt {
 
     /// Wrapped version of get_chr_ins_by_index which also validates the
     /// index against the ChrSet capacity.
-    fn safe_get_chr_ins_by_index(&mut self, index: u32) -> Option<&mut ChrIns>;
+    fn safe_get_chr_ins_by_index(&self, index: u32) -> Option<NonNull<ChrIns>>;
 
     /// Retrieves a ChrIns from the ChrSet by its index. Avoid using this.
     /// Prefer using safe_get_chr_ins_by_index.
-    fn get_chr_ins_by_index(&mut self, index: u32) -> Option<&mut ChrIns>;
+    fn get_chr_ins_by_index(&self, index: u32) -> Option<NonNull<ChrIns>>;
 
     /// Retrieves a ChrIns from the ChrSet by its FieldIns handle.
-    fn get_chr_ins_by_handle(&mut self, handle: FieldInsHandle) -> Option<&mut ChrIns>;
+    fn get_chr_ins_by_handle(&self, handle: FieldInsHandle) -> Option<NonNull<ChrIns>>;
 
     /// Wrapped version of get_chr_ins_by_index which also validates the
     /// index against the ChrSet capacity.
-    fn safe_get_chr_set_entry_by_index(&mut self, index: u32) -> Option<&mut ChrSetEntry<ChrIns>>;
+    fn safe_get_chr_set_entry_by_index(&self, index: u32) -> Option<NonNull<ChrSetEntry<ChrIns>>>;
 
     /// Retrieves a ChrSetEntry from the ChrSet by its index. Avoid using this.
     /// Prefer using safe_get_chr_ins_by_index.
-    fn get_chr_set_entry_by_index(&mut self, index: u32) -> Option<&mut ChrSetEntry<ChrIns>>;
+    fn get_chr_set_entry_by_index(&self, index: u32) -> Option<NonNull<ChrSetEntry<ChrIns>>>;
 
     /// Retrieves a ChrSetEntry from the ChrSet by its index. Avoid using this.
     /// Prefer using safe_get_chr_ins_by_index.
     fn get_chr_set_entry_by_handle(
-        &mut self,
+        &self,
         handle: FieldInsHandle,
-    ) -> Option<&mut ChrSetEntry<ChrIns>>;
+    ) -> Option<NonNull<ChrSetEntry<ChrIns>>>;
 
     /// Retrieves a ChrSetEntry from the ChrSet by its index. Avoid using this.
     /// Prefer using safe_get_chr_ins_by_index.
@@ -301,8 +319,12 @@ trait ChrSetVmt {
 }
 
 #[repr(C)]
+#[derive(Superclass)]
 /// Source of name: RTTI
-pub struct ChrSet<T: 'static> {
+pub struct ChrSet<T>
+where
+    T: Subclass<ChrIns> + 'static,
+{
     vftable: VPtr<dyn ChrSetVmt, Self>,
     pub index: i32,
     unkc: i32,
@@ -320,30 +342,43 @@ pub struct ChrSet<T: 'static> {
 }
 
 #[repr(C)]
-pub struct ChrSetEntityIdMapping<T> {
+pub struct ChrSetEntityIdMapping<T>
+where
+    T: Subclass<ChrIns> + 'static,
+{
     pub entity_id: u32,
     _pad4: u32,
     pub chr_set_entry: NonNull<ChrSetEntry<T>>,
 }
 
 #[repr(C)]
-pub struct ChrSetGroupMapping<T> {
+pub struct ChrSetGroupMapping<T>
+where
+    T: Subclass<ChrIns> + 'static,
+{
     pub group_id: u32,
     _pad4: u32,
     pub chr_set_entry: NonNull<ChrSetEntry<T>>,
 }
 
-impl<T> ChrSet<T> {
+impl<T> ChrSet<T>
+where
+    T: Subclass<ChrIns> + 'static,
+{
     pub fn get_capacity(&self) -> u32 {
         (self.vftable.get_capacity)(self)
     }
 
-    pub fn chr_ins_by_handle(&mut self, field_ins_handle: &FieldInsHandle) -> Option<&mut ChrIns> {
+    pub fn chr_ins_by_handle(&self, field_ins_handle: &FieldInsHandle) -> Option<&T> {
         (self.vftable.get_chr_ins_by_handle)(self, field_ins_handle.to_owned())
+            .and_then(|chr_ins| unsafe { chr_ins.as_ref() }.as_subclass())
     }
-}
 
-impl<T> ChrSet<T> {
+    pub fn chr_ins_by_handle_mut(&mut self, field_ins_handle: &FieldInsHandle) -> Option<&mut T> {
+        (self.vftable.get_chr_ins_by_handle)(self, field_ins_handle.to_owned())
+            .and_then(|mut chr_ins| unsafe { chr_ins.as_mut() }.as_subclass_mut())
+    }
+
     pub fn characters(&self) -> impl Iterator<Item = &mut T> {
         let mut current = self.entries;
         let end = unsafe { current.add(self.capacity as usize) };
@@ -365,7 +400,10 @@ impl<T> ChrSet<T> {
 }
 
 #[repr(C)]
-pub struct ChrSetEntry<T> {
+pub struct ChrSetEntry<T>
+where
+    T: Subclass<ChrIns>,
+{
     pub chr_ins: Option<NonNull<T>>,
     pub chr_load_status: ChrLoadStatus,
     pub chr_update_type: ChrUpdateType,
@@ -395,6 +433,7 @@ pub enum ChrUpdateType {
 }
 
 #[repr(C)]
+#[derive(Subclass)]
 /// Source of name: RTTI
 pub struct OpenFieldChrSet {
     pub base: ChrSet<ChrIns>,
@@ -426,6 +465,7 @@ pub struct OpenFieldChrSetList2Entry {
 }
 
 #[repr(C)]
+#[derive(Subclass)]
 /// Source of name: RTTI
 pub struct WorldGridAreaChr {
     pub base: WorldAreaChrBase,
@@ -612,6 +652,52 @@ pub struct CSBuddyStoneEliminateTargetCalc {
     pub range_check_counter: u32,
 }
 
+#[repr(C)]
+#[derive(Superclass)]
+#[superclass(children(NearEnemyFinder))]
+/// Interface describing a generic `ChrIns` finder.
+/// Source of name: RTTI
+pub struct IChrFinder {
+    vtable: VPtr<dyn IChrFinderVmt, Self>,
+    /// Contains the ChrIns matching the hueristics. Populated by `IChrFinder::run`.
+    pub found: NonNull<ChrIns>,
+    /// Depending on the implementation this could cap the search radius and for some
+    /// implementations this'll be populated by the distance to the result pointed to in `found`.
+    /// f32::MAX (0x7F7FFFFF) is used in case we don't want a max search radius.
+    pub distance: f32,
+}
+
+#[vtable_rs::vtable]
+trait IChrFinderVmt {
+    fn destructor(&mut self);
+
+    /// Returns true when the finder has passed the highest chr set index for a potential match.
+    /// Returning true will prevent further invokes of `IChrFinder::run`.
+    fn reached_end(&mut self, chr_set_index: u32) -> bool;
+
+    /// Runs the IChrFinder against a given ChrIns.
+    fn run(&mut self, chr_ins: &ChrIns);
+}
+
+#[repr(C)]
+#[derive(Subclass)]
+/// Implementation of `IChrFinder` for locating a hostile `ChrIns` from some arbitrary origin.
+///
+/// Source of name: RTTI
+pub struct NearEnemyFinder {
+    pub chr_finder: IChrFinder,
+    /// Position to start looking from
+    pub search_origin: HavokPosition,
+    /// Team type to be hostile against.
+    pub team_type: u8,
+    // Somehow used in some Y coordinate comparison.
+    // (0.0 <= param_1->field5_0x34) && (bVar1 = true, param_1->field5_0x34 < distanceY)
+    unk34: f32,
+    // Somehow used in some Y coordinate comparison.
+    // (((param_1->field6_0x38 < 0.0) || (param_1->field6_0x38 <= distanceY)) && (bVar1))
+    unk38: f32,
+}
+
 #[cfg(test)]
 mod test {
     use std::mem::size_of;
@@ -627,5 +713,7 @@ mod test {
         assert_eq!(0x70, size_of::<SummonBuddyWarpEntry>());
         assert_eq!(0x38, size_of::<SummonBuddyWarpManager>());
         assert_eq!(0x110, size_of::<SummonBuddyManager>());
+        assert_eq!(0x18, size_of::<IChrFinder>());
+        assert_eq!(0x40, size_of::<NearEnemyFinder>());
     }
 }

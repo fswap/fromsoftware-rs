@@ -23,7 +23,7 @@ pub struct CSRegulationManager {
 }
 
 impl CSRegulationManager {
-    /// Returns the first parameter table that uses the definition [T].
+    /// Returns the first parameter table that uses the definition `T`.
     ///
     /// In most cases, each definition has a unique table associated with it.
     /// Structs with multiple tables have explicit accessors defined.
@@ -31,7 +31,7 @@ impl CSRegulationManager {
         self.get_param_by_index(T::INDEX)
     }
 
-    /// Returns the first mutable parameter table that uses the definition [T].
+    /// Returns the first mutable parameter table that uses the definition `T`.
     ///
     /// In most cases, each definition has a unique table associated with it.
     /// Structs with multiple tables have explicit accessors defined.
@@ -42,7 +42,7 @@ impl CSRegulationManager {
     /// Returns the [ATK_PARAM_ST] struct for NPCs.
     ///
     /// There are multiple parameters that use [ATK_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn atk_param_npc(&self) -> &Parameter<ATK_PARAM_ST> {
         self.get_param_by_index(ATK_PARAM_ST::INDEX)
     }
@@ -50,7 +50,7 @@ impl CSRegulationManager {
     /// Returns the mutable [ATK_PARAM_ST] struct for NPCs.
     ///
     /// There are multiple parameters that use [ATK_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn atk_param_npc_mut(&mut self) -> &mut Parameter<ATK_PARAM_ST> {
         self.get_mut_param_by_index(ATK_PARAM_ST::INDEX)
     }
@@ -58,7 +58,7 @@ impl CSRegulationManager {
     /// Returns the [ATK_PARAM_ST] struct for PCs.
     ///
     /// There are multiple parameters that use [ATK_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn atk_param_pc(&self) -> &Parameter<ATK_PARAM_ST> {
         self.get_param_by_index(ATK_PARAM_ST::INDEX + 1)
     }
@@ -66,7 +66,7 @@ impl CSRegulationManager {
     /// Returns the mutable [ATK_PARAM_ST] struct for PCs.
     ///
     /// There are multiple parameters that use [ATK_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn atk_param_pc_mut(&mut self) -> &mut Parameter<ATK_PARAM_ST> {
         self.get_mut_param_by_index(ATK_PARAM_ST::INDEX + 1)
     }
@@ -74,7 +74,7 @@ impl CSRegulationManager {
     /// Returns the [BEHAVIOR_PARAM_ST] struct for NPCs.
     ///
     /// There are multiple parameters that use [BEHAVIOR_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn behavior_param_npc(&self) -> &Parameter<BEHAVIOR_PARAM_ST> {
         self.get_param_by_index(BEHAVIOR_PARAM_ST::INDEX)
     }
@@ -82,7 +82,7 @@ impl CSRegulationManager {
     /// Returns the mutable [BEHAVIOR_PARAM_ST] struct for NPCs.
     ///
     /// There are multiple parameters that use [BEHAVIOR_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn behavior_param_npc_mut(&mut self) -> &mut Parameter<BEHAVIOR_PARAM_ST> {
         self.get_mut_param_by_index(BEHAVIOR_PARAM_ST::INDEX)
     }
@@ -90,7 +90,7 @@ impl CSRegulationManager {
     /// Returns the [BEHAVIOR_PARAM_ST] struct for PCs.
     ///
     /// There are multiple parameters that use [BEHAVIOR_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn behavior_param_pc(&self) -> &Parameter<BEHAVIOR_PARAM_ST> {
         self.get_param_by_index(BEHAVIOR_PARAM_ST::INDEX + 1)
     }
@@ -98,7 +98,7 @@ impl CSRegulationManager {
     /// Returns the mutable [BEHAVIOR_PARAM_ST] struct for PCs.
     ///
     /// There are multiple parameters that use [BEHAVIOR_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn behavior_param_pc_mut(&mut self) -> &mut Parameter<BEHAVIOR_PARAM_ST> {
         self.get_mut_param_by_index(BEHAVIOR_PARAM_ST::INDEX + 1)
     }
@@ -106,7 +106,7 @@ impl CSRegulationManager {
     /// Returns the generic [LOD_BANK] struct.
     ///
     /// There are multiple parameters that use [LOD_BANK], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn lod_param(&self) -> &Parameter<LOD_BANK> {
         self.get_param_by_index(LOD_BANK::INDEX)
     }
@@ -114,7 +114,7 @@ impl CSRegulationManager {
     /// Returns the mutable generic [LOD_BANK] struct.
     ///
     /// There are multiple parameters that use [LOD_BANK], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn lod_param_mut(&mut self) -> &mut Parameter<LOD_BANK> {
         self.get_mut_param_by_index(LOD_BANK::INDEX)
     }
@@ -122,7 +122,7 @@ impl CSRegulationManager {
     /// Returns the [LOD_BANK] struct for PS4.
     ///
     /// There are multiple parameters that use [LOD_BANK], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn lod_param_ps4(&self) -> &Parameter<LOD_BANK> {
         self.get_param_by_index(LOD_BANK::INDEX + 1)
     }
@@ -130,7 +130,7 @@ impl CSRegulationManager {
     /// Returns the mutable [LOD_BANK] struct for PS4.
     ///
     /// There are multiple parameters that use [LOD_BANK], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn lod_param_ps4_mut(&mut self) -> &mut Parameter<LOD_BANK> {
         self.get_mut_param_by_index(LOD_BANK::INDEX + 1)
     }
@@ -138,7 +138,7 @@ impl CSRegulationManager {
     /// Returns the [LOD_BANK] struct for XBox.
     ///
     /// There are multiple parameters that use [LOD_BANK], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn lod_param_xbl(&self) -> &Parameter<LOD_BANK> {
         self.get_param_by_index(LOD_BANK::INDEX + 2)
     }
@@ -146,7 +146,7 @@ impl CSRegulationManager {
     /// Returns the mutable [LOD_BANK] struct for XBox.
     ///
     /// There are multiple parameters that use [LOD_BANK], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn lod_param_xbl_mut(&mut self) -> &mut Parameter<LOD_BANK> {
         self.get_mut_param_by_index(LOD_BANK::INDEX + 2)
     }
@@ -155,7 +155,7 @@ impl CSRegulationManager {
     /// estus flask.
     ///
     /// There are multiple parameters that use [MULTI_ESTUS_FLASK_BONUS_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn multi_hp_estus_flask_bonus_param(&self) -> &Parameter<MULTI_ESTUS_FLASK_BONUS_PARAM_ST> {
         self.get_param_by_index(MULTI_ESTUS_FLASK_BONUS_PARAM_ST::INDEX)
     }
@@ -164,7 +164,7 @@ impl CSRegulationManager {
     /// normal estus flask.
     ///
     /// There are multiple parameters that use [MULTI_ESTUS_FLASK_BONUS_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn multi_hp_estus_flask_bonus_param_mut(
         &mut self,
     ) -> &mut Parameter<MULTI_ESTUS_FLASK_BONUS_PARAM_ST> {
@@ -175,7 +175,7 @@ impl CSRegulationManager {
     /// estus flask.
     ///
     /// There are multiple parameters that use [MULTI_ESTUS_FLASK_BONUS_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn multi_mp_estus_flask_bonus_param(&self) -> &Parameter<MULTI_ESTUS_FLASK_BONUS_PARAM_ST> {
         self.get_param_by_index(MULTI_ESTUS_FLASK_BONUS_PARAM_ST::INDEX + 1)
     }
@@ -184,7 +184,7 @@ impl CSRegulationManager {
     /// ashen estus flask.
     ///
     /// There are multiple parameters that use [MULTI_ESTUS_FLASK_BONUS_PARAM_ST], so it's
-    /// unreliable to use it with [get_param].
+    /// unreliable to use it with [get_param](Self::get_param).
     pub fn multi_mp_estus_flask_bonus_param_mut(
         &mut self,
     ) -> &mut Parameter<MULTI_ESTUS_FLASK_BONUS_PARAM_ST> {
@@ -192,7 +192,7 @@ impl CSRegulationManager {
     }
 
     /// Returns the parameter at the given [index]. Panics if it doesn't match
-    /// [T].
+    /// `T`.
     fn get_param_by_index<T: ParamDef>(&self, index: usize) -> &Parameter<T> {
         let table = &self.params[index].param.table;
         table.as_param().unwrap_or_else(|| {
@@ -206,7 +206,7 @@ impl CSRegulationManager {
     }
 
     /// Returns the parameter at the given [index]. Panics if it doesn't match
-    /// [T].
+    /// `T`.
     fn get_mut_param_by_index<T: ParamDef>(&mut self, index: usize) -> &mut Parameter<T> {
         let table = &mut self.params[index].param.table;
         table
@@ -288,7 +288,7 @@ pub struct FD4ParamResCap {
 
     _unk48: [u8; 0x18],
 
-    /// The total size of [table] in bytes.
+    /// The total size of [table](Self.table) in bytes.
     pub table_size: usize,
 
     pub table: OwnedPtr<ParamTable>,
@@ -340,7 +340,7 @@ impl ParamTable {
         unsafe { self.row_info.as_slice(self.length.into()) }
     }
 
-    /// If [name] matches [T]'s [ParamDef::NAME], converts this to a [Parameter].
+    /// If [name](Self::name) matches `T`'s [ParamDef::NAME], converts this to a [Parameter].
     pub fn as_param<T: ParamDef>(&self) -> Option<&Parameter<T>> {
         if self.name() == T::NAME {
             // Safety: [Parameter] is a transparent wrapper around [ParamTable].
@@ -350,8 +350,8 @@ impl ParamTable {
         }
     }
 
-    /// If [name] matches [T]'s [ParamDef::NAME], converts this to a mutable
-    /// [Parameter].
+    /// If [name](Self::name) matches `T`'s [ParamDef::NAME], converts this to a
+    /// mutable [Parameter].
     pub fn as_mut_param<T: ParamDef>(&mut self) -> Option<&mut Parameter<T>> {
         if self.name() == T::NAME {
             // Safety: [Parameter] is a transparent wrapper around [ParamTable].
@@ -386,7 +386,7 @@ impl<T: ParamDef> Parameter<T> {
     /// Returns a slice of all the rows in this parameter.
     ///
     /// Note that these **do not** contain the row indexes. For that, you must
-    /// use [iter].
+    /// use [iter](Self::iter).
     pub fn as_slice(&self) -> &[T] {
         // Safety: We trust the game to report lengths accurately.
         unsafe {
@@ -397,7 +397,7 @@ impl<T: ParamDef> Parameter<T> {
     /// Returns a mutable slice of all the rows in this parameter.
     ///
     /// Note that these **do not** contain the row indexes. For that, you must
-    /// use [iter].
+    /// use [iter](Self::iter).
     pub fn as_mut_slice(&mut self) -> &mut [T] {
         // Safety: We trust the game to report lengths accurately.
         unsafe {
@@ -405,15 +405,15 @@ impl<T: ParamDef> Parameter<T> {
         }
     }
 
-    /// If this parameter has a row with the given [id], returns it. Otherwise
-    /// returns None.
+    /// If this parameter has a row with the given `id`, returns it. Otherwise
+    /// returns `None`.
     pub fn get(&self, id: u64) -> Option<&T> {
         // Safety: We trust DS3's memory layout
         Some(unsafe { self.ptr_for_id(id)?.as_ref() })
     }
 
-    /// If this parameter has a row with the given [id], returns a mutable
-    /// reference to it. Otherwise returns None.
+    /// If this parameter has a row with the given `id`, returns a mutable
+    /// reference to it. Otherwise returns `None`.
     pub fn get_mut(&mut self, id: u64) -> Option<&mut T> {
         // Safety: We trust DS3's memory layout
         Some(unsafe { self.ptr_for_id(id)?.as_mut() })

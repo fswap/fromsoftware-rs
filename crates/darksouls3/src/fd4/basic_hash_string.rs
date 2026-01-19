@@ -13,7 +13,7 @@ pub struct FD4BasicHashString<T: DLStringKind = DLUTF16StringKind> {
     pub inner: DLString<T>,
     /// Hashed representation of the string field.
     pub hash: u32,
-    /// Indicates whether or not [hash] is populated.
+    /// Indicates whether or not [hash](Self.hash) is populated.
     pub needs_hashing: bool,
     // _pad3d: [u8; 0x3],
 }

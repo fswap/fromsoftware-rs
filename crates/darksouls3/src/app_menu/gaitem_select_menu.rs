@@ -1,5 +1,5 @@
+use super::{MenuWindow, MenuWindowCallback, SceneObjProxy};
 use crate::CxxVec;
-use super::{MenuWindow, SceneObjProxy, MenuWindowCallback};
 
 use shared::UnknownStruct;
 

@@ -1,5 +1,4 @@
-use darksouls3::cs::CSRegulationManager;
-use darksouls3::sprj::SoloParamRepository;
+use darksouls3::sprj::{CSRegulationManager, SoloParamRepository};
 use hudhook::imgui::{TableColumnSetup, TableFlags, TreeNodeFlags};
 
 use super::DebugDisplay;

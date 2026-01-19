@@ -55,7 +55,9 @@ impl FromStatic for PlayerGameData {
     /// Returns the singleton instance of `PlayerGameData` for the main player
     /// character, if it exists.
     ///
-    /// This always returns [InstanceError::NotFound] on the main menu.
+    /// This always returns
+    /// [InstanceError::NotFound](shared::InstanceError::NotFound) on the main
+    /// menu.
     unsafe fn instance() -> InstanceResult<&'static mut Self> {
         // Go through PlayerIns because it doesn't exist on the main menu.
         unsafe { PlayerIns::instance().map(|ins| ins.player_game_data.as_mut()) }
@@ -206,7 +208,7 @@ pub struct InventoryItemsData {
     /// The total number of items the player can hold.
     pub total_capacity: u32,
 
-    /// Capacity of the [normal_items_head] array.
+    /// Capacity of the [normal_items_head](Self::normal_items_head) array.
     pub normal_items_capacity: u32,
 
     /// Pointer to the head of the normal items inventory.
@@ -219,7 +221,7 @@ pub struct InventoryItemsData {
     /// The number of normal items in the inventory.
     pub normal_items_count: u32,
 
-    /// Capacity of the [key_items_head] array.
+    /// Capacity of the [key_items_head](Self::key_items_head) array.
     pub key_items_capacity: u32,
 
     /// Pointer to the head of the key items inventory.
@@ -243,7 +245,7 @@ pub struct InventoryItemsData {
     pub key_items_accessor: InventoryItemListAccessor,
 
     /// A map from item IDs (mod 2017) to the index of their mapping linked list
-    /// in [item_id_mappings].
+    /// in [item_id_mappings](Self::item_id_mappings).
     ///
     /// This is populated as items are added to the inventory. All entries begin
     /// as -1.
@@ -251,15 +253,18 @@ pub struct InventoryItemsData {
 
     _unk60: u64,
 
-    /// A [total_capacity]-length array of mappings from item IDs to indices in
-    /// [normal_items_head] or [key_items_head].
+    /// A [total_capacity](Self::total_capacity)-length array of mappings from
+    /// item IDs to indices in [normal_items_head](Self::normal_items_head) or
+    /// [key_items_head](Self::key_items_head).
     ///
-    /// This is iteslf indexed by [item_id_mapping_indices].
+    /// This is iteslf indexed by
+    /// [item_id_mapping_indices](Self::item_id_mapping_indices).
     pub item_id_mappings: OwnedPtr<ItemIdMapping>,
 
-    /// The index into [item_id_mappings] that should be used next time an item
-    /// is added to the inventory whose index (mod 2017) hasn't yet been allocated
-    /// to [item_id_mapping_indices].
+    /// The index into [item_id_mappings](Self::item_id_mappings) that should be
+    /// used next time an item is added to the inventory whose index (mod 2017)
+    /// hasn't yet been allocated to
+    /// [item_id_mapping_indices](Self::item_id_mapping_indices).
     pub next_index: u16,
 
     _unk72: [u8; 0x6],
@@ -308,7 +313,7 @@ impl InventoryItemsData {
 
     /// Returns a slice over all the [EquipInventoryDataListEntry] allocated for
     /// this [InventoryItemsData], whether or not they're empty or in range of
-    /// [key_items_len].
+    /// [key_items_count](Self::key_items_count).
     pub fn key_entries(&self) -> &[MaybeEmpty<EquipInventoryDataListEntry>] {
         unsafe {
             std::slice::from_raw_parts(
@@ -320,7 +325,7 @@ impl InventoryItemsData {
 
     /// Returns a mutable slice over all the [EquipInventoryDataListEntry]
     /// allocated for this [InventoryItemsData], whether or not they're empty or
-    /// in range of [key_items_len].
+    /// in range of [key_items_count](Self::key_items_count).
     pub fn key_entries_mut(&mut self) -> &mut [MaybeEmpty<EquipInventoryDataListEntry>] {
         unsafe {
             std::slice::from_raw_parts_mut(
@@ -332,7 +337,7 @@ impl InventoryItemsData {
 
     /// Returns a slice over all the [EquipInventoryDataListEntry] allocated for
     /// this [InventoryItemsData], whether or not they're empty or in range of
-    /// [normal_items_len].
+    /// [normal_items_count](Self::normal_items_count).
     pub fn normal_entries(&self) -> &[MaybeEmpty<EquipInventoryDataListEntry>] {
         unsafe {
             std::slice::from_raw_parts(
@@ -344,7 +349,7 @@ impl InventoryItemsData {
 
     /// Returns a mutable slice over all the [EquipInventoryDataListEntry]
     /// allocated for this [InventoryItemsData], whether or not they're empty or
-    /// in range of [normal_items_len].
+    /// in range of [normal_items_count](Self::normal_items_count).
     pub fn normal_entries_mut(&mut self) -> &mut [MaybeEmpty<EquipInventoryDataListEntry>] {
         unsafe {
             std::slice::from_raw_parts_mut(
@@ -361,10 +366,11 @@ impl Index<u32> for InventoryItemsData {
     /// Indexes both the key and normal item entries of [InventoryItemsData]
     /// using the same logic as the game.
     ///
-    /// If [index] is less than [key_items_capacity], this returns a key items
-    /// entry. If it's greater than or equal to [key_items_capacity] but less
-    /// than that plus [normal_items_capacity], this returns a normal item
-    /// entry. Otherwise, it panics.
+    /// If `index` is less than [key_items_capacity](Self::key_items_capacity),
+    /// this returns a key items entry. If it's greater than or equal to
+    /// [key_items_capacity](Self::key_items_capacity) but less than that plus
+    /// [normal_items_capacity](Self::normal_items_capacity), this returns a
+    /// normal item entry. Otherwise, it panics.
     fn index(&self, index: u32) -> &Self::Output {
         if index < self.key_items_capacity {
             return &self.key_entries()[index as usize];
@@ -383,10 +389,11 @@ impl IndexMut<u32> for InventoryItemsData {
     /// Mutably indexes both the key and normal item entries of
     /// [InventoryItemsData] using the same logic as the game.
     ///
-    /// If [index] is less than [key_items_capacity], this returns a key items
-    /// entry. If it's greater than or equal to [key_items_capacity] but less
-    /// than that plus [normal_items_capacity], this returns a normal item
-    /// entry. Otherwise, it panics.
+    /// If `index` is less than [key_items_capacity](Self::key_items_capacity),
+    /// this returns a key items entry. If it's greater than or equal to
+    /// [key_items_capacity](Self::key_items_capacity) but less than that plus
+    /// [normal_items_capacity](Self::normal_items_capacity), this returns a
+    /// normal item entry. Otherwise, it panics.
     fn index_mut(&mut self, index: u32) -> &mut Self::Output {
         if index < self.key_items_capacity {
             return &mut self.key_entries_mut()[index as usize];
@@ -465,7 +472,8 @@ bitfield! {
     pub struct ItemIdMappingIndices(u32);
     impl Debug;
 
-    /// The index in [InventoryItemsData] at which [item_id_raw] appears.
+    /// The index in [InventoryItemsData] at which [ItemIdMapping.item_id]
+    /// appears.
     ///
     /// If this is less than [InventoryItemsData.key_items_capacity], it's a
     /// direct index into [InventoryItemsData.key_items_head]. Otherwise, this

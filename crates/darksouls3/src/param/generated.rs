@@ -9,8 +9,8 @@ pub trait ParamDef {
 
     /// The index in the global parameter repository of the *first*
     /// parameter with this definition. Some definitions are re-used
-    /// across multiple parameters, which are usually contiguous in the
-    /// repository.
+    /// across multiple parameters, which are usually contiguous in
+    /// the repository.
     const INDEX: usize;
 }
 
@@ -8114,13 +8114,13 @@ pub struct EQUIP_PARAM_PROTECTOR_ST {
     sort_id: i32,
     wandering_equip_id: i32,
     vagrant_item_lot_id: i32,
-    vagrant_bonus_ene_drop_item_lot_id: i32,
+    vagrant_bonusene_drop_item_lot_id: i32,
     vagrant_item_ene_drop_item_lot_id: i32,
     fix_price: i32,
     basic_price: i32,
     sell_value: i32,
     weight: f32,
-    resident_sp_effect_id1: i32,
+    resident_sp_effect_id: i32,
     resident_sp_effect_id2: i32,
     resident_sp_effect_id3: i32,
     material_set_id: i32,
@@ -8348,12 +8348,12 @@ impl EQUIP_PARAM_PROTECTOR_ST {
         self.vagrant_item_lot_id = value;
     }
 
-    pub fn vagrant_bonus_ene_drop_item_lot_id(&self) -> i32 {
-        self.vagrant_bonus_ene_drop_item_lot_id
+    pub fn vagrant_bonusene_drop_item_lot_id(&self) -> i32 {
+        self.vagrant_bonusene_drop_item_lot_id
     }
 
-    pub fn set_vagrant_bonus_ene_drop_item_lot_id(&mut self, value: i32) {
-        self.vagrant_bonus_ene_drop_item_lot_id = value;
+    pub fn set_vagrant_bonusene_drop_item_lot_id(&mut self, value: i32) {
+        self.vagrant_bonusene_drop_item_lot_id = value;
     }
 
     pub fn vagrant_item_ene_drop_item_lot_id(&self) -> i32 {
@@ -8396,12 +8396,12 @@ impl EQUIP_PARAM_PROTECTOR_ST {
         self.weight = value;
     }
 
-    pub fn resident_sp_effect_id1(&self) -> i32 {
-        self.resident_sp_effect_id1
+    pub fn resident_sp_effect_id(&self) -> i32 {
+        self.resident_sp_effect_id
     }
 
-    pub fn set_resident_sp_effect_id1(&mut self, value: i32) {
-        self.resident_sp_effect_id1 = value;
+    pub fn set_resident_sp_effect_id(&mut self, value: i32) {
+        self.resident_sp_effect_id = value;
     }
 
     pub fn resident_sp_effect_id2(&self) -> i32 {
@@ -10489,12 +10489,12 @@ pub struct EQUIP_PARAM_WEAPON_ST {
     mag_guard_cut_rate: f32,
     fire_guard_cut_rate: f32,
     thun_guard_cut_rate: f32,
+    sp_effect_behavior_id0: i32,
     sp_effect_behavior_id1: i32,
     sp_effect_behavior_id2: i32,
-    sp_effect_behavior_id3: i32,
+    resident_sp_effect_id0: i32,
     resident_sp_effect_id1: i32,
     resident_sp_effect_id2: i32,
-    resident_sp_effect_id3: i32,
     material_set_id: i32,
     origin_equip_wep0: i32,
     origin_equip_wep1: i32,
@@ -10517,7 +10517,7 @@ pub struct EQUIP_PARAM_WEAPON_ST {
     weak_c_damage_rate: f32,
     weak_d_damage_rate: f32,
     vagrant_item_lot_id: i32,
-    vagrant_bonus_ene_drop_item_lot_id: i32,
+    vagrant_bonusene_drop_item_lot_id: i32,
     vagrant_item_ene_drop_item_lot_id: i32,
     equip_model_id: i16,
     icon_id: i16,
@@ -10808,6 +10808,14 @@ impl EQUIP_PARAM_WEAPON_ST {
         self.thun_guard_cut_rate = value;
     }
 
+    pub fn sp_effect_behavior_id0(&self) -> i32 {
+        self.sp_effect_behavior_id0
+    }
+
+    pub fn set_sp_effect_behavior_id0(&mut self, value: i32) {
+        self.sp_effect_behavior_id0 = value;
+    }
+
     pub fn sp_effect_behavior_id1(&self) -> i32 {
         self.sp_effect_behavior_id1
     }
@@ -10824,12 +10832,12 @@ impl EQUIP_PARAM_WEAPON_ST {
         self.sp_effect_behavior_id2 = value;
     }
 
-    pub fn sp_effect_behavior_id3(&self) -> i32 {
-        self.sp_effect_behavior_id3
+    pub fn resident_sp_effect_id0(&self) -> i32 {
+        self.resident_sp_effect_id0
     }
 
-    pub fn set_sp_effect_behavior_id3(&mut self, value: i32) {
-        self.sp_effect_behavior_id3 = value;
+    pub fn set_resident_sp_effect_id0(&mut self, value: i32) {
+        self.resident_sp_effect_id0 = value;
     }
 
     pub fn resident_sp_effect_id1(&self) -> i32 {
@@ -10846,14 +10854,6 @@ impl EQUIP_PARAM_WEAPON_ST {
 
     pub fn set_resident_sp_effect_id2(&mut self, value: i32) {
         self.resident_sp_effect_id2 = value;
-    }
-
-    pub fn resident_sp_effect_id3(&self) -> i32 {
-        self.resident_sp_effect_id3
-    }
-
-    pub fn set_resident_sp_effect_id3(&mut self, value: i32) {
-        self.resident_sp_effect_id3 = value;
     }
 
     pub fn material_set_id(&self) -> i32 {
@@ -11032,12 +11032,12 @@ impl EQUIP_PARAM_WEAPON_ST {
         self.vagrant_item_lot_id = value;
     }
 
-    pub fn vagrant_bonus_ene_drop_item_lot_id(&self) -> i32 {
-        self.vagrant_bonus_ene_drop_item_lot_id
+    pub fn vagrant_bonusene_drop_item_lot_id(&self) -> i32 {
+        self.vagrant_bonusene_drop_item_lot_id
     }
 
-    pub fn set_vagrant_bonus_ene_drop_item_lot_id(&mut self, value: i32) {
-        self.vagrant_bonus_ene_drop_item_lot_id = value;
+    pub fn set_vagrant_bonusene_drop_item_lot_id(&mut self, value: i32) {
+        self.vagrant_bonusene_drop_item_lot_id = value;
     }
 
     pub fn vagrant_item_ene_drop_item_lot_id(&self) -> i32 {

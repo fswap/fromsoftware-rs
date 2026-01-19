@@ -7,12 +7,9 @@ use super::DebugDisplay;
 
 impl DebugDisplay for WorldChrMan {
     fn render_debug(&mut self, ui: &&mut Ui) {
-        ui.text(format!(
-            "World Area Chr Count: {}",
-            self.world_area_chr_count
-        ));
+        ui.text(format!("World Area Chr Len: {}", self.world_area_chr_len));
 
-        let mut world_block_chrs = self.world_block_chrs_mut().collect::<Vec<_>>();
+        let mut world_block_chrs = self.block_chrs_mut().collect::<Vec<_>>();
         if ui.collapsing_header(
             format!("World Block Chrs: {}", world_block_chrs.len()),
             TreeNodeFlags::empty(),
@@ -74,13 +71,13 @@ where
     T: Subclass<ChrIns>,
 {
     fn render_debug(&mut self, ui: &&mut Ui) {
-        let mut characters = self.iter_mut().collect::<Vec<_>>();
+        let characters = self.iter_mut().collect::<Vec<_>>();
         if ui.collapsing_header(
             format!("Characters: {}", characters.len()),
             TreeNodeFlags::empty(),
         ) {
             ui.indent();
-            for chr_ins in characters.iter_mut() {
+            for chr_ins in characters {
                 if ui.collapsing_header(
                     format!("{} ##{:p}", chr_ins.id(), chr_ins),
                     TreeNodeFlags::empty(),

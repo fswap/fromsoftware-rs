@@ -1,6 +1,7 @@
 use eldenring::cs::{
-    CSChrModelParamModifierModule, CSChrPhysicsModule, CSChrTimeActModule, ChrAsm,
-    ChrAsmEquipEntries, ChrAsmEquipment, ChrAsmSlot, ChrIns, ChrInsModuleContainer, EquipGameData,
+    CSChrModelParamModifierModule, CSChrPhysicsModule, CSChrRideModule, CSChrTimeActModule,
+    CSPairAnimNode, CSRideNode, ChrAsm, ChrAsmEquipEntries, ChrAsmEquipment, ChrAsmSlot, ChrIns,
+    ChrInsModuleContainer, ChrInsSubclass, ChrPhysicsMaterialInfo, EquipGameData,
     EquipInventoryData, EquipItemData, EquipMagicData, ItemReplenishStateTracker, PlayerGameData,
     PlayerIns,
 };
@@ -11,7 +12,7 @@ use super::{DebugDisplay, UiExt};
 
 impl DebugDisplay for PlayerIns {
     fn render_debug(&self, ui: &Ui) {
-        self.chr_ins.render_debug(ui);
+        chr_ins_common_debug(&self.chr_ins, ui);
 
         ui.header("ChrAsm", || {
             self.chr_asm.render_debug(ui);
@@ -525,53 +526,74 @@ impl DebugDisplay for EquipInventoryData {
 
 impl DebugDisplay for ChrIns {
     fn render_debug(&self, ui: &Ui) {
-        ui.text(format!("Team: {}", self.team_type));
-
-        ui.text(format!("Block ID: {}", self.block_id_1));
-
-        ui.text(format!("Last hit by: {}", self.last_hit_by));
-        ui.text(format!("TAE use item: {:?}", self.tae_queued_use_item));
-
-        ui.text(format!(
-            "Block center origin 1: {}",
-            self.block_origin_override
-        ));
-        ui.text(format!("Block center origin 2: {}", self.block_origin));
-
-        ui.header("Special Effect", || {
-            ui.table(
-                "chr-ins-special-effects",
-                [
-                    TableColumnSetup::new("ID"),
-                    TableColumnSetup::new("Timer"),
-                    TableColumnSetup::new("Removal timer"),
-                    TableColumnSetup::new("Duration"),
-                    TableColumnSetup::new("Interval Timer"),
-                ],
-                self.special_effect.entries(),
-                |ui, _i, entry| {
-                    ui.table_next_column();
-                    ui.text(format!("{}", entry.param_id));
-
-                    ui.table_next_column();
-                    ui.text(format!("{}", entry.interval_timer));
-
-                    ui.table_next_column();
-                    ui.text(format!("{}", entry.removal_timer));
-
-                    ui.table_next_column();
-                    ui.text(format!("{}", entry.duration));
-
-                    ui.table_next_column();
-                    ui.text(format!("{}", entry.interval_timer));
-                },
-            );
-        });
-
-        ui.header("Modules", || {
-            self.module_container.render_debug(ui);
-        });
+        match ChrInsSubclass::from(self) {
+            ChrInsSubclass::PlayerIns(player) => player.render_debug(ui),
+            _ => chr_ins_common_debug(self, ui),
+        }
     }
+}
+
+fn chr_ins_common_debug(chr_ins: &ChrIns, ui: &Ui) {
+    ui.text(format!("Team: {}", chr_ins.team_type));
+    ui.text(format!("Chr Type: {:?}", chr_ins.chr_type));
+    ui.text(format!("Field Ins Handle: {}", chr_ins.field_ins_handle));
+    ui.text(format!("P2P Entity Handle: {}", chr_ins.p2p_entity_handle));
+
+    ui.text(format!("Block ID: {}", chr_ins.block_id));
+    ui.text(format!("Block ID Override: {}", chr_ins.block_id_override));
+    ui.text(format!("Block ID Origin: {}", chr_ins.block_origin));
+    ui.text(format!(
+        "Block ID Origin Override: {}",
+        chr_ins.block_origin_override
+    ));
+
+    ui.header("Chunk Position", || {
+        chr_ins.chunk_position.render_debug(ui);
+    });
+
+    ui.header("Initial Position", || {
+        chr_ins.initial_position.render_debug(ui);
+    });
+    ui.header("Initial Orientation", || {
+        chr_ins.initial_orientation_euler.render_debug(ui);
+    });
+
+    ui.text(format!("Last hit by: {}", chr_ins.last_hit_by));
+    ui.text(format!("TAE use item: {:?}", chr_ins.tae_queued_use_item));
+
+    ui.header("Special Effect", || {
+        ui.table(
+            "chr-ins-special-effects",
+            [
+                TableColumnSetup::new("ID"),
+                TableColumnSetup::new("Timer"),
+                TableColumnSetup::new("Removal timer"),
+                TableColumnSetup::new("Duration"),
+                TableColumnSetup::new("Interval Timer"),
+            ],
+            chr_ins.special_effect.entries(),
+            |ui, _i, entry| {
+                ui.table_next_column();
+                ui.text(format!("{}", entry.param_id));
+
+                ui.table_next_column();
+                ui.text(format!("{}", entry.interval_timer));
+
+                ui.table_next_column();
+                ui.text(format!("{}", entry.removal_timer));
+
+                ui.table_next_column();
+                ui.text(format!("{}", entry.duration));
+
+                ui.table_next_column();
+                ui.text(format!("{}", entry.interval_timer));
+            },
+        );
+    });
+
+    ui.header("Modules", || {
+        chr_ins.module_container.render_debug(ui);
+    });
 }
 
 impl DebugDisplay for ChrInsModuleContainer {
@@ -587,6 +609,10 @@ impl DebugDisplay for ChrInsModuleContainer {
         ui.header("Time Act", || {
             self.time_act.render_debug(ui);
         });
+
+        ui.header("Ride", || {
+            self.ride.render_debug(ui);
+        });
     }
 }
 
@@ -594,6 +620,16 @@ impl DebugDisplay for CSChrPhysicsModule {
     fn render_debug(&self, ui: &Ui) {
         ui.text(format!("Position: {}", self.position));
         ui.text(format!("Orientation: {}", self.orientation));
+
+        ui.header("Physics material", || {
+            unsafe { self.slide_info.material_info.as_ref() }.render_debug(ui);
+        });
+    }
+}
+
+impl DebugDisplay for ChrPhysicsMaterialInfo {
+    fn render_debug(&self, ui: &Ui) {
+        ui.text(format!("Ground normal vector: {:?}", self.normal_vector));
     }
 }
 
@@ -644,5 +680,61 @@ impl DebugDisplay for CSChrTimeActModule {
             ui.text(format!("Play Time: {}", current_anim_info.play_time));
             ui.text(format!("Anim Length: {}", current_anim_info.anim_length));
         });
+    }
+}
+
+impl DebugDisplay for CSChrRideModule {
+    fn render_debug(&self, ui: &Ui) {
+        ui.header("CSRideNode", || {
+            self.ride_node.render_debug(ui);
+        });
+
+        ui.text(format!("Last mounted: {:?}", self.last_mounted));
+        ui.text(format!("Has ride param: {}", self.has_ride_param));
+        ui.text(format!("Is ridden character: {}", self.is_ride_character));
+        ui.text(format!("Mount rotation: {}", self.mount_data.rotation));
+        ui.text(format!(
+            "Mount position: {}",
+            self.mount_data.mount_position
+        ));
+        ui.text(format!("Mount velocity: {}", self.mount_data.velocity));
+        ui.text(format!(
+            "Attack direction: {}",
+            self.mount_data.attack_direction
+        ));
+        ui.text(format!(
+            "Attack received damage type: {}",
+            self.mount_data.received_damage_type
+        ));
+        ui.text(format!("Mount health: {}", self.mount_data.mount_health));
+        ui.text(format!("Fall height: {}", self.mount_data.fall_height));
+        ui.text(format!(
+            "Is touching solid ground: {}",
+            self.mount_data.is_touching_solid_ground
+        ));
+        ui.text(format!("Is falling: {}", self.mount_data.is_falling));
+        ui.text(format!("Is sliding: {}", self.mount_data.is_sliding));
+        ui.text(format!("Is mounting: {}", self.is_mounting));
+        ui.text(format!("Is mounted: {}", self.is_mounted));
+    }
+}
+
+impl DebugDisplay for CSPairAnimNode {
+    fn render_debug(&self, ui: &Ui) {
+        ui.text(format!("Counter party: {}", self.counter_party));
+        ui.text(format!("Start position: {}", self.start_position));
+        ui.text(format!("Start rotation: {}", self.start_rotation));
+    }
+}
+
+impl DebugDisplay for CSRideNode {
+    fn render_debug(&self, ui: &Ui) {
+        self.pair_anim_node.render_debug(ui);
+        ui.text(format!("Ride state: {}", self.ride_state));
+        ui.text(format!("Ride param ID: {}", self.ride_param_id));
+        ui.text(format!(
+            "Camera mount control: {}",
+            self.camera_mount_control
+        ));
     }
 }

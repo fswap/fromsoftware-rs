@@ -4,11 +4,11 @@ version.workspace = true
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
-
-[lib]
-crate-type = ["cdylib"]
+publish = false
 
 [dependencies]
 fromsoftware-shared.workspace = true
 eldenring.workspace = true
-glam.workspace = true
+
+[lib]
+crate-type = ["cdylib"]

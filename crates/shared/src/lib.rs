@@ -6,6 +6,7 @@ pub mod owned_pointer;
 pub mod program;
 pub mod rtti;
 mod r#static;
+pub mod steam;
 mod subclass;
 pub mod task;
 pub mod util;

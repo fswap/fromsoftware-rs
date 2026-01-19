@@ -2,12 +2,15 @@ use std::{borrow::Cow, ptr::NonNull};
 
 use shared::{
     FromStatic, InstanceError, InstanceResult, OwnedPtr, Subclass, Superclass, UnknownStruct,
+    for_all_subclasses,
 };
 
 use super::{ChrInsModuleContainer, ChrSetEntry, PlayerGameData, WorldChrMan};
-use crate::{dlkr::DLAllocatorRef, fd4::FD4Time, rva};
+use crate::{dlkr::DLAllocatorRef, fd4::FD4Time};
 
 #[repr(C)]
+#[derive(Superclass)]
+#[superclass(children(PlayerIns, ReplayGhostIns))]
 /// Source of name: RTTI
 pub struct ChrIns {
     _vftable: usize,
@@ -171,25 +174,9 @@ pub struct ChrIns {
     _unk1f98: [u8; 8],
 }
 
-unsafe impl Superclass for ChrIns {
-    fn vmt_rva() -> u32 {
-        rva::get().chr_ins_vmt
-    }
-}
-
-/// Methods that are available for all subclasses of [ChrIns].
-pub trait ChrInsSubclass: Subclass<ChrIns> {
+#[for_all_subclasses]
+pub impl ChrInsExt for Subclass<ChrIns> {
     /// Returns the character ID string for this character, of the form `c1234`.
-    fn id(&self) -> String;
-
-    /// Set this character's HP to zero, killing it.
-    fn kill(&mut self);
-}
-
-impl<T> ChrInsSubclass for T
-where
-    T: Subclass<ChrIns>,
-{
     fn id(&self) -> String {
         self.superclass().modules.data.id()
     }
@@ -206,6 +193,7 @@ type FD4SlotBaseSeed = UnknownStruct<0xa8>;
 type ChrAttachSys = UnknownStruct<0x28>;
 
 #[repr(C)]
+#[derive(Subclass)]
 /// Source of name: RTTI
 pub struct PlayerIns {
     pub super_chr_ins: ChrIns,
@@ -259,12 +247,6 @@ pub struct PlayerIns {
     _unk2188: [u8; 0x18],
 }
 
-unsafe impl Subclass<ChrIns> for PlayerIns {
-    fn vmt_rva() -> u32 {
-        rva::get().player_ins_vmt
-    }
-}
-
 impl FromStatic for PlayerIns {
     fn name() -> Cow<'static, str> {
         "PlayerIns".into()
@@ -282,15 +264,10 @@ impl FromStatic for PlayerIns {
 }
 
 #[repr(C)]
+#[derive(Subclass)]
 /// Source of name: RTTI
 pub struct ReplayGhostIns {
     pub super_chr_ins: ChrIns,
-}
-
-unsafe impl Subclass<ChrIns> for ReplayGhostIns {
-    fn vmt_rva() -> u32 {
-        rva::get().replay_ghost_ins_vmt
-    }
 }
 
 #[repr(C)]

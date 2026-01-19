@@ -22,7 +22,7 @@ pub struct GameDataMan {
 }
 
 impl GameDataMan {
-    /// Gives the player [quantity] instances of [item].
+    /// Gives the player `quantity` instances of `item`.
     ///
     /// Note that this won't give more than one copy of certain key items.
     pub fn give_item_directly(&mut self, item: ItemId, quantity: u32) {
@@ -44,7 +44,7 @@ impl GameDataMan {
         give_item_directly(0, (item.category() as u32) << 28, item.param_id(), quantity);
     }
 
-    /// Removes [quantity] instances of [item] from the player's inventory.
+    /// Removes `quantity` instances of `item` from the player's inventory.
     pub fn remove_item(&mut self, item: ItemId, quantity: u32) {
         // As above, this takes LuaEventMan but doesn't use it.
         let va = Program::current()

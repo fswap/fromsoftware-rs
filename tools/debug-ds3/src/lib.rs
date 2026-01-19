@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use darksouls3::app_menu::*;
-use darksouls3::cs::*;
 use darksouls3::sprj::*;
 use darksouls3::util::{input::*, system::wait_for_system_init};
 use fromsoftware_shared::Program;

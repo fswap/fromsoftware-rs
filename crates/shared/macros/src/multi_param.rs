@@ -19,8 +19,8 @@ pub fn multi_param_helper(args: TokenStream, input: TokenStream) -> Result<Token
         .parse(args)?
         .into_iter()
         .collect::<Vec<_>>();
-
     let fields = extract_fields(&mut input_trait, &structs)?;
+
     for field in &fields {
         let ident = &field.ident;
         let set_ident = format_ident!("set_{}", field.ident);

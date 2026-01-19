@@ -2,7 +2,8 @@ use std::ptr::NonNull;
 
 use shared::UnknownStruct;
 
-use crate::{CxxVec, cs::ParamResCap, fd4::FD4BasicHashString};
+use super::ParamResCap;
+use crate::{CxxVec, fd4::FD4BasicHashString};
 
 #[repr(C)]
 #[shared::singleton("SoloParamRepository")]
