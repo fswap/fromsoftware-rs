@@ -14,6 +14,7 @@ mod task;
 mod world_block;
 mod world_chr_man;
 mod world_info;
+mod scaleform_value;
 
 pub use chr_ins::*;
 pub use chr_module::*;
@@ -31,3 +32,4 @@ pub use task::*;
 pub use world_block::*;
 pub use world_chr_man::*;
 pub use world_info::*;
+pub use scaleform_value::*;

@@ -1,9 +1,10 @@
 use std::{borrow::Cow, ptr::NonNull};
 
-use crate::{CxxVec, dlut::DLFixedVector, rva};
+use crate::{CxxVec, dlut::DLFixedVector, rva, sprj::SprjScaleformValue};
 use shared::{FromStatic, UnknownStruct};
 
 #[repr(C)]
+// Source of name: RTTI
 pub struct NewMenuSystem {
     _vftable: usize,
     _array_menu_window_job_1: usize,
@@ -64,20 +65,16 @@ impl FromStatic for NewMenuSystem {
 }
 
 #[repr(C)]
+// Source of name: RTTI
 pub struct MenuWindow {
     pub vftable: usize,
     _unk08: u32,
     _fix_order_job_sequence: usize,
     _unk18: [u8; 0x28],
     _unk40: u64,
-    _grid_control: usize,
-    _option_setting_top_dialog: usize,
-    _unk58: [u8; 0x38],
-    _unk90: u64,
-    _unk98: [u8; 0x18],
-    _unkb0: u64,
-    _unkb8: [u8; 0x18],
-    _unkd0: u64,
+    _scene_obj_modifiers: DLFixedVector<usize, 8>,
+    _callback1: MenuWindowCallback,
+    _callback2: MenuWindowCallback,
     _unkd8: SceneObjProxy,
     _unk138: SceneObjProxy,
     _unk198: u64,
@@ -96,15 +93,33 @@ pub struct MenuWindow {
     _unk9d0: u64,
 }
 
-type SceneObjProxy = UnknownStruct<0x60>;
-type SprjScaleformValue = UnknownStruct<0x38>;
+#[repr(C)]
+pub struct MenuWindowCallback {
+    _vftable: usize,
+
+    /// The window that owns this callback.
+    pub menu_window: NonNull<MenuWindow>,
+
+    _unk10: [u8; 0x8],
+    _this: NonNull<MenuWindowCallback>,
+}
+
+#[repr(C)]
+// Source of name: RTTI
+pub struct SceneObjProxy {
+    _vftable: usize,
+    _unk08: [u8; 0x18],
+    _scene_holder: usize,
+    pub scaleform_value: SprjScaleformValue,
+}
 
 #[cfg(test)]
 mod test {
-    use crate::app_menu::{MenuWindow, NewMenuSystem};
+    use super::*;
 
     #[test]
     fn proper_sizes() {
+        assert_eq!(0x60, size_of::<SceneObjProxy>());
         assert_eq!(0x9d8, size_of::<MenuWindow>());
         assert_eq!(0x3098, size_of::<NewMenuSystem>());
     }
