@@ -50,7 +50,7 @@ pub unsafe trait Superclass: Sized {
     /// table, it will return `false` for *subclasses* of `T` even though C++
     /// considers them to be of type `T`.
     fn is_subclass<T: Subclass<Self>>(&self) -> bool {
-        self.vmt() == Self::vmt_va()
+        self.vmt() == T::vmt_va()
     }
 
     /// Returns this as a `T` if it is one. Otherwise, returns `None`.
