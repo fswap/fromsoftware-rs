@@ -222,6 +222,7 @@ pub fn derive_subclass(input: TokenStream) -> TokenStream {
 ///
 /// impl<'sub> From<AnimalSubclassesMut<'sub>> for AnimalSubclasses<'sub> {}
 /// impl<'sub> From<&'sub T> for AnimalSubclasses<'sub> where T: Subclass<Animal> {}
+/// impl<'sub> From<&'sub mut T> for AnimalSubclasses<'sub> where T: Subclass<Animal> {}
 /// impl<'sub> From<&'sub mut T> for AnimalSubclassesMut<'sub> where T: Subclass<Animal> {}
 /// ```
 ///

@@ -54,6 +54,16 @@ impl NewMenuSystem {
         // menus.
         self.finalize_callback_job != 0
     }
+
+    /// Iterates over the currently active windows in the menu system.
+    pub fn windows(&self) -> impl Iterator<Item = &MenuWindow> {
+        // Safety: This is safe only on the presumption that because we have an
+        // immutable reference to `self`, no code (including C++ code) is
+        // mutating it during the lifetime of the references we return. That
+        // should should be true, since the game does all menu logic on the main
+        // thread.
+        self.windows.iter().map(|p| unsafe { p.as_ref() })
+    }
 }
 
 impl FromStatic for NewMenuSystem {

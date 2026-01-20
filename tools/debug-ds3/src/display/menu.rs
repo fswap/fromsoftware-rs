@@ -1,4 +1,5 @@
 use hudhook::imgui::{TableColumnSetup, TableFlags, TreeNodeFlags, Ui};
+use pelite::pe64::Pe;
 
 use darksouls3::{app_menu::*, sprj::*};
 
@@ -42,33 +43,75 @@ impl DebugDisplay for MenuMan {
 
 impl DebugDisplay for NewMenuSystem {
     fn render_debug(&mut self, ui: &&mut Ui) {
-        ui.indent();
+        ui.text("Windows:");
+        for (i, window) in self.windows.iter_mut().enumerate() {
+            let window = unsafe { window.as_mut() };
+            let name = match MenuWindowSubclass::from(&*window) {
+                MenuWindowSubclass::GaitemSelectMenu(_) => "GaitemSelect",
+                _ => "Unknown",
+            };
+            if ui.collapsing_header(format!("#{}: {}", i, name), TreeNodeFlags::empty()) {
+                ui.indent();
+                DebugDisplay::render_debug(window, ui);
+                ui.unindent();
+            }
+        }
+    }
+}
+
+impl DebugDisplay for MenuWindow {
+    fn render_debug(&mut self, ui: &&mut Ui) {
+        match MenuWindowSubclassMut::from(self) {
+            MenuWindowSubclassMut::GaitemSelectMenu(player) => {
+                DebugDisplay::render_debug(player, ui)
+            }
+            MenuWindowSubclassMut::MenuWindow(window) => {
+                ui.text(format!("Address: {:p}", window));
+
+                ui.text(format!(
+                    "Vtable RVA: {:x}",
+                    crate::Program::current()
+                        .va_to_rva(window.vftable as u64)
+                        .unwrap()
+                ));
+            }
+            _ => {
+                ui.text("Unknown MenuWindow type");
+            }
+        }
+    }
+}
+
+impl DebugDisplay for GaitemSelectMenu {
+    fn render_debug(&mut self, ui: &&mut Ui) {
+        ui.text(format!("Address: {:p}", self));
         if let Some(_t) = ui.begin_table_header_with_flags(
-            "new-menu-system-windows",
+            "item-select-menu-items",
             [
-                TableColumnSetup::new("Address"),
-                TableColumnSetup::new("vtable RVA"),
+                TableColumnSetup::new("ID"),
+                TableColumnSetup::new("price"),
+                TableColumnSetup::new("quantity"),
+                TableColumnSetup::new("category"),
+                TableColumnSetup::new("ShopLineupParam"),
             ],
             TableFlags::RESIZABLE
                 | TableFlags::BORDERS
                 | TableFlags::ROW_BG
                 | TableFlags::SIZING_STRETCH_PROP,
         ) {
-            for window in self.windows.iter() {
+            for item in self.items() {
                 ui.table_next_column();
-                ui.text(format!("{:p}", window));
-
-                use pelite::pe64::*;
+                ui.text(format!("{:?}|{}", item.id.category(), item.id.param_id()));
                 ui.table_next_column();
-                ui.text(format!(
-                    "{:x}",
-                    crate::Program::current()
-                        .va_to_rva(unsafe { window.as_ref() }.vftable as u64)
-                        .unwrap()
-                ));
+                ui.text(format!("{}", item.price));
+                ui.table_next_column();
+                ui.text(format!("{}", item.quantity));
+                ui.table_next_column();
+                ui.text(format!("{:?}", item.category));
+                ui.table_next_column();
+                ui.text(format!("{}", item.shop_lineup_param));
             }
         }
-        ui.unindent();
     }
 }
 
