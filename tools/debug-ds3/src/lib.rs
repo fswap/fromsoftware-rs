@@ -50,6 +50,7 @@ struct DarkSouls3DebugGui {
     size: [f32; 2],
     scale: f32,
     world: StaticDebugger<WorldChrMan>,
+    game: StaticDebugger<GameDataMan>,
     field_area: StaticDebugger<FieldArea>,
     events: StaticDebugger<SprjEventFlagMan>,
     menu_man: StaticDebugger<MenuMan>,
@@ -66,6 +67,7 @@ impl DarkSouls3DebugGui {
             size: [600., 400.],
             scale: 1.8,
             world: StaticDebugger::new(),
+            game: StaticDebugger::new(),
             field_area: StaticDebugger::new(),
             events: StaticDebugger::new(),
             menu_man: StaticDebugger::new(),
@@ -107,6 +109,7 @@ impl ImguiRenderLoop for DarkSouls3DebugGui {
                 let tabs = ui.tab_bar("main-tabs").unwrap();
                 if let Some(item) = ui.tab_item("World") {
                     self.world.render_debug(&ui);
+                    self.game.render_debug(&ui);
                     self.events.render_debug(&ui);
                     self.field_area.render_debug(&ui);
                     item.end();

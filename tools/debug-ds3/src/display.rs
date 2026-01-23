@@ -8,6 +8,7 @@ pub(crate) mod menu;
 pub(crate) mod param;
 pub(crate) mod world_block;
 pub(crate) mod world_chr_man;
+pub(crate) mod game;
 
 pub trait DebugDisplay {
     fn render_debug(&mut self, ui: &&mut Ui);
