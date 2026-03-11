@@ -4,7 +4,7 @@ use std::fmt::Display;
 use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 
-use crate::dlkr::DLAllocatorRef;
+use crate::dlkr::{DLAllocatorRef, DLHeapAllocator};
 
 use encoding_rs::{self, DecoderResult};
 
@@ -187,6 +187,10 @@ pub trait DLStringKind: DLStringKindSeal {
     }
 }
 
+/// A trait specifically for [DLStringKind]s that can represent all sequences of
+/// Unicode code points.
+pub trait DLUnicodeStringKind: DLStringKind {}
+
 pub struct DLUTF8StringKind;
 impl DLStringKindSeal for DLUTF8StringKind {}
 impl DLStringKind for DLUTF8StringKind {
@@ -194,6 +198,7 @@ impl DLStringKind for DLUTF8StringKind {
     type CharType = u8;
     const ENCODING: DLCharacterSet = DLCharacterSet::UTF8;
 }
+impl DLUnicodeStringKind for DLUTF8StringKind {}
 
 pub struct DLISO8859_1StringKind;
 impl DLStringKindSeal for DLISO8859_1StringKind {}
@@ -202,6 +207,7 @@ impl DLStringKind for DLISO8859_1StringKind {
     type CharType = u8;
     const ENCODING: DLCharacterSet = DLCharacterSet::Iso8859_1;
 }
+impl DLUnicodeStringKind for DLUTF16StringKind {}
 
 pub struct DLShiftJisStringKind;
 impl DLStringKindSeal for DLShiftJisStringKind {}
@@ -210,6 +216,7 @@ impl DLStringKind for DLShiftJisStringKind {
     type CharType = u8;
     const ENCODING: DLCharacterSet = DLCharacterSet::ShiftJis;
 }
+impl DLUnicodeStringKind for DLUTF32StringKind {}
 
 pub struct DLEucJpStringKind;
 impl DLStringKindSeal for DLEucJpStringKind {}
@@ -242,15 +249,40 @@ pub struct DLString<T: DLStringKind = DLUTF16StringKind> {
 }
 
 impl<T: DLStringKind> DLString<T> {
-    pub fn new(allocator: DLAllocatorRef) -> Self {
+    /// Creates a new, empty [`DLString`] that will allocate space using
+    /// [`DLHeapAllocator::main`].
+    pub fn new() -> Self {
+        Self::new_in(DLHeapAllocator::main())
+    }
+
+    /// Creates a new, empty [`DLString`] that will allocate space using
+    /// `allocator`.
+    pub fn new_in(allocator: DLAllocatorRef) -> Self {
         Self {
             base: T::InnerType::new_in(allocator.clone()),
             encoding: T::ENCODING,
         }
     }
 
-    pub fn from_str(allocator: DLAllocatorRef, s: &str) -> Result<Self, DLStringEncodingError> {
-        let encoded: Vec<T::CharType> = T::encode(s)?;
+    /// Creates a new [`DLString`] copying data from `s` into heap space
+    /// allocated with [`DLHeapAllocator::main`].
+    ///
+    /// Use `DLString::from` instead if you know the [`DLStringKind`] is
+    /// Unicode-compatible.
+    pub fn try_from(value: &str) -> Result<Self, DLStringEncodingError> {
+        Self::try_from_in(value, DLHeapAllocator::main())
+    }
+
+    /// Creates a new [`DLString`] copying data from `s` into heap space
+    /// allocated with `allocator`.
+    ///
+    /// Use [`DLString::from_in`] instead if you know the [`DLStringKind`] is
+    /// Unicode-compatible.
+    pub fn try_from_in(
+        s: impl AsRef<str>,
+        allocator: DLAllocatorRef,
+    ) -> Result<Self, DLStringEncodingError> {
+        let encoded: Vec<T::CharType> = T::encode(s.as_ref())?;
 
         Ok(Self {
             base: T::InnerType::from_chars_in(&encoded, allocator.clone()),
@@ -263,9 +295,23 @@ impl<T: DLStringKind> DLString<T> {
         T::decode(bytes).map(|cow| cow.into_owned())
     }
 
-    pub fn copy<U: DLStringKind>(
-        allocator: DLAllocatorRef,
+    /// Creates a new [`DLString`] copying data from `other` into heap space
+    /// allocated with [`DLHeapAllocator::main`].
+    ///
+    /// Use [`DLString::copy`] instead if you know both strings have the same
+    /// encoding.
+    pub fn try_copy<U: DLStringKind>(other: &DLString<U>) -> Result<Self, DLStringEncodingError> {
+        Self::try_copy_in(other, DLHeapAllocator::main())
+    }
+
+    /// Creates a new [`DLString`] copying data from `other` into heap space
+    /// allocated with `allocator`.
+    ///
+    /// Use [`DLString::copy_in`] instead if you know both strings have the same
+    /// encoding.
+    pub fn try_copy_in<U: DLStringKind>(
         other: &DLString<U>,
+        allocator: DLAllocatorRef,
     ) -> Result<Self, DLStringEncodingError> {
         // If the encodings match, we can directly copy the bytes
         if T::ENCODING == U::ENCODING {
@@ -278,8 +324,44 @@ impl<T: DLStringKind> DLString<T> {
         } else {
             // If encodings differ, we need to decode and re-encode
             let decoded = T::decode(other.base.as_u8_slice())?;
-            DLString::from_str(allocator, &decoded)
+            DLString::try_from_in(&decoded, allocator)
         }
+    }
+
+    /// Creates a new [`DLString`] copying data from `other` into heap space
+    /// allocated with [`DLHeapAllocator::main`].
+    pub fn copy(other: &DLString<T>) -> Self {
+        Self::copy_in(other, DLHeapAllocator::main())
+    }
+
+    /// Creates a new [`DLString`] copying data from `other` into heap space
+    /// allocated with `allocator`.
+    pub fn copy_in(other: &DLString<T>, allocator: DLAllocatorRef) -> Self {
+        Self {
+            base: T::InnerType::from_chars_in(other.base.as_chars(), allocator.clone()),
+            encoding: T::ENCODING,
+        }
+    }
+}
+
+impl<T: DLUnicodeStringKind> DLString<T> {
+    /// Creates a new [`DLString`] copying data from `value` into heap space
+    /// allocated with [`DLHeapAllocator::main`].
+    pub fn from_in(s: impl AsRef<str>, allocator: DLAllocatorRef) -> Self {
+        // The encode can't fail because the string kind can represent all
+        // Unicode characters.
+        let encoded: Vec<T::CharType> = T::encode(s.as_ref()).unwrap();
+
+        Self {
+            base: T::InnerType::from_chars_in(&encoded, allocator.clone()),
+            encoding: T::ENCODING,
+        }
+    }
+}
+
+impl<T: DLStringKind> Default for DLString<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -303,6 +385,14 @@ impl<T: DLStringKind> Display for DLString<T> {
             Ok(s) => write!(f, "{s}"),
             Err(_) => Err(std::fmt::Error),
         }
+    }
+}
+
+impl<T: DLUnicodeStringKind, S: AsRef<str>> From<S> for DLString<T> {
+    /// Creates a new [`DLString`] copying data from `value` into heap space
+    /// allocated with [`DLHeapAllocator::main`].
+    fn from(value: S) -> Self {
+        Self::from_in(value.as_ref(), DLHeapAllocator::main())
     }
 }
 

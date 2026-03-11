@@ -351,6 +351,14 @@ pattern = "80 3d $ { ? ' } 00 0f 85 [4] 32 c0 "
 captures = ["", "runtime_heap_allocator"]
 pattern = "e8 [4] 48 8b 05 ${ ' } 48 85 c0 75 0c e8 [4] 48 89 05 [4] 48 89 05 [4]"
 
+[[patterns]]
+pattern = "4c 8b 05 $ { ' } 4c 89 44 24 20 ba 08 00 00 00 b9 e0 00 00 00 e8"
+captures = ["", "main_heap_allocator_ptr"]
+
+[[patterns]]
+pattern = "4c 63 05 [4] 33 d2 4d 85 c0 7e ? 48 8d 05 [4]"
+captures = ["dlallocator_get_heap_allocator_of"]
+
 [[vmts]]
 class = "CS::CSEzStateTalkEvent"
 vftable = "cs_ez_state_talk_event_vmt"

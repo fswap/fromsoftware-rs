@@ -9,8 +9,7 @@ use shared::Program;
 use vtable_rs::VPtr;
 
 use crate::{
-    dlkr::DLAllocatorRef,
-    dltx::{DLString, DLStringEncodingError},
+    dltx::DLString,
     dlut::{DLReferenceCountObject, DLReferenceCountObjectVmt, DLReferencePointer},
     rva,
 };
@@ -25,24 +24,19 @@ pub struct EzStateSharedString {
     string: DLString,
 }
 
-impl EzStateSharedString {
-    pub fn from_str(
-        allocator: DLAllocatorRef,
-        str: &str,
-    ) -> Result<DLReferencePointer<Self>, DLStringEncodingError> {
-        let new = Self {
+impl<S: AsRef<str>> From<S> for DLReferencePointer<EzStateSharedString> {
+    fn from(value: S) -> Self {
+        DLReferencePointer::new(EzStateSharedString {
             vftable: unsafe {
-                transmute::<u64, VPtr<dyn DLReferenceCountObjectVmt, Self>>(
+                transmute::<u64, VPtr<dyn DLReferenceCountObjectVmt, EzStateSharedString>>(
                     Program::current()
                         .rva_to_va(rva::get().ez_state_shared_string_vmt)
                         .unwrap(),
                 )
             },
             reference_count: AtomicU32::new(1),
-            string: DLString::from_str(allocator.clone(), str)?,
-        };
-
-        Ok(DLReferencePointer::new(allocator.clone(), new))
+            string: value.into(),
+        })
     }
 }
 

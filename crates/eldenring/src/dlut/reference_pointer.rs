@@ -1,6 +1,5 @@
 use std::{
-    alloc::{GlobalAlloc, Layout},
-    mem::MaybeUninit,
+    alloc::{GlobalAlloc, Layout, handle_alloc_error},
     ops::{Deref, DerefMut},
     ptr::NonNull,
     sync::atomic::{AtomicU32, Ordering},
@@ -8,7 +7,7 @@ use std::{
 
 use vtable_rs::VPtr;
 
-use crate::dlkr::DLAllocatorRef;
+use crate::dlkr::DLHeapAllocator;
 
 #[repr(transparent)]
 /// A reference counted pointer to an object that implements `DLReferenceCountObject`
@@ -17,9 +16,25 @@ use crate::dlkr::DLAllocatorRef;
 pub struct DLReferencePointer<T: DLReferenceCountObject>(NonNull<T>);
 
 impl<T: DLReferenceCountObject> DLReferencePointer<T> {
-    pub fn new(allocator: DLAllocatorRef, data: T) -> Self {
-        let new = unsafe { &mut *allocator.alloc(Layout::new::<T>()).cast::<MaybeUninit<_>>() };
-        Self(NonNull::from_ref(new.write(data)))
+    /// Creates a new pointer to a reference-counted object with value `T`.
+    ///
+    /// This uses [`DLHeapAllocator::runtime`], which is a safe default for all
+    /// known reference-counted types.
+    pub fn new(data: T) -> Self {
+        let layout = Layout::new::<T>();
+
+        // Some `DLReferenceCountObject`s use `DLAllocator::GetHeapAllocatorOf`
+        // to deallocate their data, but others just use
+        // `::GetSystemAllocatorOf`. Since `GetHeapAllocator` supports system
+        // allocators but `GetSystemAllocator` doesn't support dynamic heap
+        // allocators, we always allocate with the runtime (system) allocator.
+        match NonNull::new(unsafe { DLHeapAllocator::runtime().alloc(layout) }.cast::<T>()) {
+            Some(new) => {
+                unsafe { new.write(data) };
+                Self(new)
+            }
+            None => handle_alloc_error(layout),
+        }
     }
 }
 

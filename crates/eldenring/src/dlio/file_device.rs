@@ -280,7 +280,7 @@ where
             owning_operator_container: NonNull::from(operator_container),
             io_state: DLFileOperatorIOState::default(),
             owning_file_device: NonNull::from(file_device),
-            path: DLString::copy(allocator.into(), path).expect("Failed to copy DLString"),
+            path: DLString::copy_in(path, allocator.into()),
         }
     }
 }
@@ -416,10 +416,7 @@ where
     extern "C" fn set_path(&mut self, path: &DLString, param_3: bool, param_4: bool) -> bool {
         self.base.io_state.0 &= 0xfffffff9;
         self.base.io_state.0 |= (((param_4 as u32 & 1) * 2) | (param_3 as u32 & 1)) * 2;
-
-        self.base.path =
-            DLString::copy(self.base.allocator.into(), path).expect("Failed to copy DLString");
-
+        self.base.path = DLString::copy_in(path, self.base.allocator.into());
         true
     }
 

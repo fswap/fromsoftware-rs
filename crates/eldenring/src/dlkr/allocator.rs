@@ -5,7 +5,7 @@ use std::{
 };
 
 use pelite::pe64::Pe;
-use shared::Program;
+use shared::*;
 use vtable_rs::VPtr;
 
 use crate::rva;
@@ -82,20 +82,6 @@ pub struct DLAllocatorBase {
 #[repr(transparent)]
 #[derive(Clone)]
 pub struct DLAllocatorRef(NonNull<DLAllocatorBase>);
-
-impl DLAllocatorRef {
-    /// Returns the global instance of DLAllocator that uses the standard MSVC malloc()/free()
-    /// implementation for heap management
-    pub fn runtime_heap_allocator() -> Self {
-        unsafe {
-            transmute::<u64, Self>(
-                Program::current()
-                    .rva_to_va(rva::get().runtime_heap_allocator)
-                    .unwrap(),
-            )
-        }
-    }
-}
 
 unsafe impl GlobalAlloc for DLAllocatorRef {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
@@ -229,5 +215,59 @@ impl DLAllocatorVmt for DLAllocatorBase {
 
     extern "C" fn get_memory_block_for_allocation(&mut self, _allocation: *const u8) -> *const u8 {
         todo!()
+    }
+}
+
+/// A zero-typed struct representing the set of allocators used by the game that
+/// allocate onto the main heap.
+///
+/// All `HeapAllocator<DLKR::DLDynamicHeap<...>>` allocators should be
+/// compatible with this, as well as
+/// `HeapAllocator<DLKR::Win32RuntimeHeapImpl>`.
+pub struct DLHeapAllocator;
+
+impl DLHeapAllocator {
+    /// Returns the game's main dynamic heap allocator.
+    pub fn main() -> DLAllocatorRef {
+        unsafe {
+            transmute::<u64, DLAllocatorRef>(
+                Program::current()
+                    .rva_to_va(rva::get().main_heap_allocator_ptr)
+                    .unwrap(),
+            )
+        }
+    }
+
+    /// Returns the global instance of [`DLAllocatorBase`] that uses the
+    /// standard MSVC `malloc()`/`free()` implementation for heap management.
+    pub fn runtime() -> DLAllocatorRef {
+        unsafe {
+            transmute::<u64, DLAllocatorRef>(
+                Program::current()
+                    .rva_to_va(rva::get().runtime_heap_allocator)
+                    .unwrap(),
+            )
+        }
+    }
+}
+
+impl GameAllocator for DLHeapAllocator {
+    fn allocate(layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
+        match NonNull::new(unsafe { DLHeapAllocator::main().alloc(layout) }) {
+            Some(ptr) => Ok(NonNull::slice_from_raw_parts(ptr, layout.size())),
+            None => Err(AllocError),
+        }
+    }
+
+    unsafe fn deallocate(ptr: NonNull<u8>, layout: Layout) {
+        unsafe {
+            let call = transmute::<u64, extern "C" fn(NonNull<u8>) -> DLAllocatorRef>(
+                Program::current()
+                    .rva_to_va(rva::get().dlallocator_get_heap_allocator_of)
+                    .unwrap(),
+            );
+            let allocator = call(ptr);
+            allocator.dealloc(ptr.as_ptr(), layout);
+        }
     }
 }
